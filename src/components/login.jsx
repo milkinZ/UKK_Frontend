@@ -50,8 +50,12 @@ export default class Login extends React.Component {
     render() {
         return (
             <div class="py-6 mt-12">
+                <a href="#" class="flex items-center justify-center mb-6 text-2xl font-semibold text-gray-100 ">
+                    <img class="w-8 h-8 mr-2" src="location.png" alt="logo" />
+                    Hot Cafe
+                </a>
                 <div class="flex dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden mx-auto max-w-sm lg:max-w-xl">
-                    <div class="w-full p-8 text-gray-300">
+                    <div class="w-full p-6 text-gray-300">
                         <h2 class="text-3xl font-semibold text-center">Masuk</h2>
                         <p class="text-xl  text-center">Selamat Datang!</p>
 
