@@ -134,14 +134,12 @@ export default class User extends React.Component {
         this.getUser()
     }
     status = () => {
-        $('#dropdown').show()
-        $('#ikon2').show()
-        $('#ikon1').hide()
-    }
-    statusTutup = () => {
-        $('#dropdown').hide()
-        $('#ikon1').show()
-        $('#ikon2').hide()
+        var x = document.getElementById("dropdown");
+        if (x.style.display === "none") {
+          x.style.display = "block";
+        } else {
+          x.style.display = "none";
+        }
     }
     close = () => {
         $("#modal_user").hide()

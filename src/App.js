@@ -5,6 +5,7 @@ import Meja from './pages/admin/meja';
 import Menu from './pages/admin/menu';
 import User from './pages/admin/user';
 import Pemesanan from './pages/kasir/pemesanan';
+import Manajer from './pages/manajer/manajer';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path='/admin/meja' element={<Meja/>} />
       <Route path='/admin/menu' element={<Menu/>} />
       <Route path='/kasir/pemesanan' element={<Pemesanan/>}/>
+      <Route path='/manajer' element={<Manajer/>}/>
     </Routes>
   )
 }

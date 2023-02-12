@@ -20,12 +20,14 @@ export default class Meja extends React.Component {
             window.location = "/"
         }
     }
+
     headerConfig = () => {
         let header = {
             headers: { Authorization: `Bearer ${this.state.token}` }
         }
         return header;
     }
+    
     getMeja = () => {
         $("#dropdown").hide()
         let url = "http://localhost:4040/kasir_kafe/meja" 
@@ -125,14 +127,12 @@ export default class Meja extends React.Component {
         this.getMeja()
     }
     status = () => {
-        $('#dropdown').show()
-        $('#ikon2').show()
-        $('#ikon1').hide()
-    }
-    statusTutup = () => {
-        $('#dropdown').hide()
-        $('#ikon1').show()
-        $('#ikon2').hide()
+        var x = document.getElementById("dropdown");
+        if (x.style.display === "none") {
+          x.style.display = "block";
+        } else {
+          x.style.display = "none";
+        }
     }
     close = () => {
         $("#modal_meja").hide()
@@ -157,7 +157,6 @@ export default class Meja extends React.Component {
                                     <th scope="col" class="px-6 py-3 flex items-center">
                                         Status Meja
                                         <a href="#" onClick={() => this.status()} id="ikon1"><svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 ml-1" aria-hidden="true" fill="currentColor" viewBox="0 0 320 512"><path d="M27.66 224h264.7c24.6 0 36.89-29.78 19.54-47.12l-132.3-136.8c-5.406-5.406-12.47-8.107-19.53-8.107c-7.055 0-14.09 2.701-19.45 8.107L8.119 176.9C-9.229 194.2 3.055 224 27.66 224zM292.3 288H27.66c-24.6 0-36.89 29.77-19.54 47.12l132.5 136.8C145.9 477.3 152.1 480 160 480c7.053 0 14.12-2.703 19.53-8.109l132.3-136.8C329.2 317.8 316.9 288 292.3 288z" /></svg></a>
-                                        <a href="#" onClick={() => this.statusTutup()} id="ikon2" className="hidden"><svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 ml-1" aria-hidden="true" fill="currentColor" viewBox="0 0 320 512"><path d="M27.66 224h264.7c24.6 0 36.89-29.78 19.54-47.12l-132.3-136.8c-5.406-5.406-12.47-8.107-19.53-8.107c-7.055 0-14.09 2.701-19.45 8.107L8.119 176.9C-9.229 194.2 3.055 224 27.66 224zM292.3 288H27.66c-24.6 0-36.89 29.77-19.54 47.12l132.5 136.8C145.9 477.3 152.1 480 160 480c7.053 0 14.12-2.703 19.53-8.109l132.3-136.8C329.2 317.8 316.9 288 292.3 288z" /></svg></a>
                                     </th>
                                     <div id="dropdown" class="z-10 hidden fixed bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
                                         <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
