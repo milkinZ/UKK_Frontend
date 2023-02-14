@@ -2,7 +2,7 @@ import React from "react";
 import $ from "jquery";
 import axios from "axios";
 import Navbar from "./navbar";
-import { FaShoppingCart, FaCartPlus } from 'react-icons/fa'
+import { HiOutlinePlus, HiOutlineMinus } from 'react-icons/hi'
 
 export default class Pemesanan extends React.Component {
     constructor() {
@@ -12,6 +12,8 @@ export default class Pemesanan extends React.Component {
             detail_transaksi: [],
             menu: [],
             detail: [],
+            user: [],
+            meja: [],
             action: "",
             token: "",
             id_transaksi: 0,
@@ -72,6 +74,42 @@ export default class Pemesanan extends React.Component {
             })
     }
 
+    getUser = () => {
+        let url = "http://localhost:4040/kasir_kafe/user"
+        axios.get(url, this.headerConfig())
+            .then(response => {
+                this.setState({ user: response.data.data })
+            })
+            .catch(error => {
+                if (error.response) {
+                    if (error.response.status) {
+                        window.alert(error.response.data.message)
+                        window.location = '/'
+                    }
+                } else {
+                    console.log(error);
+                }
+            })
+    }
+
+    getMeja = () => {
+        let url = "http://localhost:4040/kasir_kafe/meja"
+        axios.get(url, this.headerConfig())
+            .then(response => {
+                this.setState({ meja: response.data.data })
+            })
+            .catch(error => {
+                if (error.response) {
+                    if (error.response.status) {
+                        window.alert(error.response.data.message)
+                        window.location = '/'
+                    }
+                } else {
+                    console.log(error);
+                }
+            })
+    }
+
     getDetailTransaksi = () => {
         let url = "http://localhost:4040/kasir_kafe/pemesanan/detail"
         axios.get(url, this.headerConfig())
@@ -89,23 +127,25 @@ export default class Pemesanan extends React.Component {
                 }
             })
     }
-
-    Add = () => {
+    Add = (selectedItem) => {
+        let user = JSON.parse(localStorage.getItem('user'))
         this.setState({
             id_transaksi: 0,
             tgl_transaksi: '',
-            id_user: 0,
-            id_meja: 0,
-            nama_pelanggan: '',
-            status: '',
+            id_meja: 1,
+            id_user: user.id_user,
+            nama_pelanggan: 'budi',
+            status: 'belum_bayar',
             jenis_pesanan: '',
-            action: "insert"
+            action: "insert",
+            qty: this.state.qty + 1,
+            detail_transaksi: [
+                {
+                    id_menu: selectedItem.id_menu,
+                    qty: this.state.qty,
+                }
+            ]
         })
-        let ID = this.state.id_transaksi
-        this.state.detail.forEach(element => {
-            element.id_transaksi = ID
-        });
-
     }
     Edit = selectedItem => {
         $("#modal_transaksi").show()
@@ -126,8 +166,7 @@ export default class Pemesanan extends React.Component {
             nama_pelanggan: this.state.nama_pelanggan,
             status: this.state.status,
             jenis_pesanan: this.state.jenis_pesanan,
-            id_menu: this.state.id_menu,
-            qty: this.state.qty
+            detail_transaksi: this.state.detail_transaksi
         }
         let url = "http://localhost:4040/kasir_kafe/pemesanan"
         if (this.state.action === "insert") {
@@ -166,6 +205,8 @@ export default class Pemesanan extends React.Component {
         this.getTransaksi()
         this.getDetailTransaksi()
         this.getMenu()
+        this.getUser()
+        this.getMeja()
     }
     close = () => {
         $("#modal_transaksi").hide()
@@ -220,27 +261,30 @@ export default class Pemesanan extends React.Component {
                     <Navbar />
                     <div class=" relative mt-20 overflow-x-auto shadow-md sm:rounded-lg m-2">
                         <h2 className="dark:text-white mb-6 text-xl font-sans ml-3 mt-1">Daftar Menu
-                            <button type="button" class="float-right mt-1 mr-3 relative inline-flex items-center px-4 py-2.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                <FaShoppingCart className="mr-1"></FaShoppingCart>
-                                <span class="sr-only">Notifications</span>
-                                Keranjang
-                                <div class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -right-2 dark:border-gray-900">{this.state.detail.length}</div>
+                            <button className="hover:bg-green-500 float-right mr-3 bg-green-600 text-white font-bold uppercase text-xs px-4 py-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={(event) => this.saveTransaksi(event)}>
+                                Pesan
                             </button>
                         </h2>
                         <div className="grid grid-cols-4">
                             {this.state.menu.map(item => (
                                 <div class="max-w-sm bg-white border m-3 border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" key={item.id_menu}>
-
                                     <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
                                     <div class="p-5">
                                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{item.nama_menu}</h5>
                                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Jenis: {item.jenis}</p>
                                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Deskripsi: {item.deskripsi}</p>
                                         <p class="mb-6 font-normal text-gray-700 dark:text-gray-400">Harga: {this.convertToRupiah(item.harga)}</p>
-                                        <a href="#" onClick={() => this.Add()} class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                            <FaCartPlus className="mr-1"></FaCartPlus>
-                                            Tambah Keranjang
-                                        </a>
+
+                                        <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                            <HiOutlineMinus><span class="sr-only">Kurang</span></HiOutlineMinus>
+                                        </button>
+                                        <button type="button" onClick={() => this.Add(item)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                            <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
+                                        </button>
+
+                                        <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
+                                            <span class="font-medium text-gray-200 ">{this.state.qty}</span>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

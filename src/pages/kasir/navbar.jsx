@@ -4,9 +4,9 @@ import { Link } from "react-router-dom"
 export default class Navbar extends React.Component {
     Navbar = (link) => {
         if(link === 'pemesanan'){
-            window.location = '/admin/pemesanan'
+            window.location = '/kasir/pemesanan'
         }else if(link === 'riwayat'){
-            window.location = '/admin/riwayat'
+            window.location = '/kasir/riwayat'
         }
     }
 
