@@ -1,6 +1,6 @@
 import React from "react";
 import $ from "jquery";
-import axios from "axios";
+import axios, { all } from "axios";
 import Navbar from "./navbar";
 import { HiOutlinePlus, HiOutlineMinus } from 'react-icons/hi'
 
@@ -20,8 +20,7 @@ export default class Pemesanan extends React.Component {
             status: '',
             jenis_pesanan: '',
             cart: [],
-            id_menu: [],
-            qty: []
+            qty: [],
         }
         if (localStorage.getItem("token")) {
             this.state.token = localStorage.getItem("token")
@@ -35,6 +34,7 @@ export default class Pemesanan extends React.Component {
         }
         return header;
     }
+
     getMenu = () => {
         let url = "http://localhost:4040/kasir_kafe/menu/"
         axios.get(url, this.headerConfig())
@@ -53,44 +53,8 @@ export default class Pemesanan extends React.Component {
             })
     }
 
-    getTransaksi = () => {
-        let url = "http://localhost:4040/kasir_kafe/pemesanan"
-        axios.get(url, this.headerConfig())
-            .then(response => {
-                this.setState({ transaksi: response.data.data })
-            })
-            .catch(error => {
-                if (error.response) {
-                    if (error.response.status) {
-                        window.alert(error.response.data.message)
-                        window.location = '/'
-                    }
-                } else {
-                    console.log(error);
-                }
-            })
-    }
-
-    getUser = () => {
-        let url = "http://localhost:4040/kasir_kafe/user"
-        axios.get(url, this.headerConfig())
-            .then(response => {
-                this.setState({ user: response.data.data })
-            })
-            .catch(error => {
-                if (error.response) {
-                    if (error.response.status) {
-                        window.alert(error.response.data.message)
-                        window.location = '/'
-                    }
-                } else {
-                    console.log(error);
-                }
-            })
-    }
-
     getMeja = () => {
-        let url = "http://localhost:4040/kasir_kafe/meja"
+        let url = "http://localhost:4040/kasir_kafe/meja/status/tersedia"
         axios.get(url, this.headerConfig())
             .then(response => {
                 this.setState({ meja: response.data.data })
@@ -125,21 +89,6 @@ export default class Pemesanan extends React.Component {
         axios
             .get("http://localhost:4040/kasir_kafe/menu/" + value.id_menu, this.headerConfig())
             .then((res) => {
-                console.log(res.data.data)
-                console.log("id menu: " + this.state.menu[index].id_menu)
-                console.log("index: " + index)
-                console.log("panjang cart: " + this.state.cart.length)
-                console.log("qty index " + this.state.cart[index])
-                let i = this.state.cart.indexOf()
-                console.log(i)
-                // const keranjang ={
-                //     id_menu: value.id_menu,
-                //     qty: 1
-                // }
-                // this.setState({
-                //     cart: keranjang
-                // })
-                // for (let i = 0; i < menus.length; i++) {
                 if (this.state.cart.length === 0) {
                     const keranjang = {
                         id_menu: value.id_menu,
@@ -147,7 +96,7 @@ export default class Pemesanan extends React.Component {
                     }
                     this.state.cart.push(keranjang)
                 } else if (this.state.cart.find(item => item.id_menu === value.id_menu)) {
-                    this.state.cart.find(item => item.id_menu===value.id_menu).qty++
+                    this.state.cart.find(item => item.id_menu === value.id_menu).qty++
                 } else if (this.state.cart.find(item => item.id_menu !== value.id_menu)) {
                     const keranjang = {
                         id_menu: value.id_menu,
@@ -156,11 +105,45 @@ export default class Pemesanan extends React.Component {
                     this.state.cart.push(keranjang)
                 }
                 console.log(this.state.cart)
-                // }
+                // const menuId = value.id_menu; // id menu yang dicari
+                // const order = this.state.cart.find(order => order.id_menu === menuId);// mencari objek dengan id menu yang dicari
+                // const qty = order.qty;
+                // this.setState({
+                //     qty: qty
+                // })
+                this.setState({
+                    cart: this.state.cart
+                })
+            })
+            .catch(error => console.log(error))
+    };
+
+    handleMinus = (value) => {
+        axios.get("http://localhost:4040/kasir_kafe/menu/" + value.id_menu, this.headerConfig())
+
+            .then((res) => {
+                let i = this.state.cart.indexOf()
+                if (this.state.cart.length === 0) {
+                    window.alert("Belum ada yang dipesan")
+                } else if (this.state.cart.find(item => item.id_menu === value.id_menu)) {
+                    if (this.state.cart.find(item => item.qty > 0)) {
+                        this.state.cart.find(item => item.id_menu === value.id_menu).qty--
+                    } else {
+                        window.alert("Belum ada yang dipesan")
+                    }
+                } else if (this.state.cart.find(item => item.id_menu !== value.id_menu)) {
+                    window.alert("Belum ada yang dipesan")
+                }
+                this.state.cart.find(item => item.qty === 0) ? this.state.cart.splice(i) : console.log("lanjut")
+                console.log(this.state.cart)
+                this.setState({
+                    cart: this.state.cart
+                })
             })
             .catch(error => console.log(error))
 
     };
+
 
     Edit = selectedItem => {
         $("#modal_transaksi").show()
@@ -183,18 +166,26 @@ export default class Pemesanan extends React.Component {
             jenis_pesanan: this.state.jenis_pesanan,
             detail_transaksi: this.state.cart
         }
+        let data = {
+            id_meja: this.state.id_meja,
+            status_meja: "tidak_tersedia"
+        }
         let url = "http://localhost:4040/kasir_kafe/pemesanan"
-        if (this.state.action === "insert") {
+        if (this.state.jenis_pesanan === "ditempat") {
             axios.post(url, sendData, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
-                    this.setState({ transaksi: response.data.data })
+                    axios.put("http://localhost:4040/kasir_kafe/meja/", data, this.headerConfig())
+                    window.location.reload()
+                    this.getMenu()
                 })
-        } else if (this.state.action === "update") {
-            axios.put(url, sendData, this.headerConfig())
+                .catch(error => console.log(error))
+        } else if (this.state.jenis_pesanan === "dibungkus") {
+            axios.post(url, sendData, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
-                    this.getTransaksi()
+                    window.location.reload()
+                    this.getMenu()
                 })
                 .catch(error => console.log(error))
         }
@@ -206,7 +197,7 @@ export default class Pemesanan extends React.Component {
             axios.delete(url, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
-                    this.getUser()
+                    this.getMenu()
                 })
                 .catch(error => console.log(error))
         }
@@ -269,7 +260,31 @@ export default class Pemesanan extends React.Component {
             <div className='flex h-screen w-full'>
                 <div class="w-full h-screen">
                     <Navbar />
-                    <div class=" relative mt-20 overflow-x-auto shadow-md sm:rounded-lg m-2">
+                        <table class="w-full text-sm text-left mt-20 text-gray-500 dark:text-gray-400">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        ID Menu
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        QTY
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.state.cart.map((item) => (
+                                    <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" key={item.id_menu}>
+                                        <td class="px-6 py-4">
+                                            {item.id_menu}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {item.qty}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    <div class=" relative overflow-x-auto shadow-md sm:rounded-lg m-2 mt-6">
                         <h2 className="dark:text-white mb-6 text-xl font-sans ml-3 mt-1">Daftar Menu
                             <button className="hover:bg-green-500 float-right mr-3 bg-green-600 text-white font-bold uppercase text-xs px-4 py-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.Add()}>
                                 Pesan
@@ -277,23 +292,24 @@ export default class Pemesanan extends React.Component {
                         </h2>
                         <div className="grid grid-cols-4">
                             {this.state.menu.map((item, index) => (
-                                <div class="max-w-sm bg-white border m-3 border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" key={index}>
+                                <div class="max-w-sm bg-white border m-3 border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" key={item.id_menu}>
                                     <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
                                     <div class="p-5">
                                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{item.nama_menu}</h5>
+                                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">ID Menu: {item.id_menu}</p>
                                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Jenis: {item.jenis}</p>
                                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Deskripsi: {item.deskripsi}</p>
                                         <p class="mb-6 font-normal text-gray-700 dark:text-gray-400">Harga: {this.convertToRupiah(item.harga)}</p>
 
-                                        <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                        <button type="button" onClick={() => this.handleMinus(item)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                             <HiOutlineMinus><span class="sr-only">Kurang</span></HiOutlineMinus>
                                         </button>
-                                            <button type="button" onClick={() => this.AddDetail(item, index)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                                <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
-                                            </button>
-                                        <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
-                                            <span class="font-medium text-gray-200 ">{this.state.qty[index]}</span>
-                                        </div>
+                                        <button type="button" onClick={() => this.AddDetail(item, index)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                            <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
+                                        </button>
+                                        {/* <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
+                                            <span  class="font-medium text-gray-200 ">{this.state.qty}</span>
+                                        </div> */}
                                     </div>
                                 </div>
                             ))}
