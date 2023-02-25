@@ -129,6 +129,9 @@ export default class Pemesanan extends React.Component {
                 console.log("id menu: " + this.state.menu[index].id_menu)
                 console.log("index: " + index)
                 console.log("panjang cart: " + this.state.cart.length)
+                console.log("qty index " + this.state.cart[index])
+                let i = this.state.cart.indexOf()
+                console.log(i)
                 // const keranjang ={
                 //     id_menu: value.id_menu,
                 //     qty: 1
@@ -144,8 +147,7 @@ export default class Pemesanan extends React.Component {
                     }
                     this.state.cart.push(keranjang)
                 } else if (this.state.cart.find(item => item.id_menu === value.id_menu)) {
-                    let i = index
-                    this.state.cart[i].qty += 1
+                    this.state.cart.find(item => item.id_menu===value.id_menu).qty++
                 } else if (this.state.cart.find(item => item.id_menu !== value.id_menu)) {
                     const keranjang = {
                         id_menu: value.id_menu,
@@ -286,9 +288,9 @@ export default class Pemesanan extends React.Component {
                                         <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                             <HiOutlineMinus><span class="sr-only">Kurang</span></HiOutlineMinus>
                                         </button>
-                                        <button type="button" onClick={() => this.AddDetail(item, index)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                            <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
-                                        </button>
+                                            <button type="button" onClick={() => this.AddDetail(item, index)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                                <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
+                                            </button>
                                         <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
                                             <span class="font-medium text-gray-200 ">{this.state.qty[index]}</span>
                                         </div>
