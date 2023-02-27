@@ -212,7 +212,7 @@ export default class Meja extends React.Component {
                                     </div>
                                     <div>
                                         <label for="role" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status Meja</label>
-                                        <select className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Status Meja" name="status_meja" value={this.state.status_meja} onChange={this.bind} required>
+                                        <select className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Status Meja" name="status_meja" value={this.state.status_meja} onChange={this.bind}>
                                             <option value="">Pilih Status Meja</option>
                                             <option value="tersedia">Tersedia</option>
                                             <option value="tidak_tersedia">Tidak Tersedia</option>

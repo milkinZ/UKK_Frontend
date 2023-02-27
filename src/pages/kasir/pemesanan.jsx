@@ -1,6 +1,6 @@
 import React from "react";
 import $ from "jquery";
-import axios, { all } from "axios";
+import axios from "axios";
 import Navbar from "./navbar";
 import { HiOutlinePlus, HiOutlineMinus } from 'react-icons/hi'
 
@@ -10,6 +10,7 @@ export default class Pemesanan extends React.Component {
         this.state = {
             menu: [],
             meja: [],
+            menus: [],
             action: "",
             token: "",
             id_transaksi: 0,
@@ -20,7 +21,7 @@ export default class Pemesanan extends React.Component {
             status: '',
             jenis_pesanan: '',
             cart: [],
-            qty: [],
+            total: [],
         }
         if (localStorage.getItem("token")) {
             this.state.token = localStorage.getItem("token")
@@ -82,10 +83,9 @@ export default class Pemesanan extends React.Component {
             nama_pelanggan: '',
             status: 'belum_bayar',
             jenis_pesanan: '',
-            action: "insert",
         })
     }
-    AddDetail = (value, index) => {
+    AddDetail = (value) => {
         axios
             .get("http://localhost:4040/kasir_kafe/menu/" + value.id_menu, this.headerConfig())
             .then((res) => {
@@ -95,6 +95,7 @@ export default class Pemesanan extends React.Component {
                         qty: 1
                     }
                     this.state.cart.push(keranjang)
+                    this.state.menus.push(res.data.data)
                 } else if (this.state.cart.find(item => item.id_menu === value.id_menu)) {
                     this.state.cart.find(item => item.id_menu === value.id_menu).qty++
                 } else if (this.state.cart.find(item => item.id_menu !== value.id_menu)) {
@@ -103,8 +104,8 @@ export default class Pemesanan extends React.Component {
                         qty: 1
                     }
                     this.state.cart.push(keranjang)
+                    this.state.menus.push(res.data.data)
                 }
-                console.log(this.state.cart)
                 // const menuId = value.id_menu; // id menu yang dicari
                 // const order = this.state.cart.find(order => order.id_menu === menuId);// mencari objek dengan id menu yang dicari
                 // const qty = order.qty;
@@ -112,7 +113,8 @@ export default class Pemesanan extends React.Component {
                 //     qty: qty
                 // })
                 this.setState({
-                    cart: this.state.cart
+                    cart: this.state.cart,
+                    menus: this.state.menus
                 })
             })
             .catch(error => console.log(error))
@@ -123,6 +125,7 @@ export default class Pemesanan extends React.Component {
 
             .then((res) => {
                 let i = this.state.cart.indexOf()
+                let a = this.state.menus.indexOf()
                 if (this.state.cart.length === 0) {
                     window.alert("Belum ada yang dipesan")
                 } else if (this.state.cart.find(item => item.id_menu === value.id_menu)) {
@@ -134,25 +137,37 @@ export default class Pemesanan extends React.Component {
                 } else if (this.state.cart.find(item => item.id_menu !== value.id_menu)) {
                     window.alert("Belum ada yang dipesan")
                 }
-                this.state.cart.find(item => item.qty === 0) ? this.state.cart.splice(i) : console.log("lanjut")
+                this.state.cart.find(item => item.qty === 0) ? this.state.cart.splice(i) && this.state.menus.splice(a) : console.log("lanjut")
                 console.log(this.state.cart)
                 this.setState({
-                    cart: this.state.cart
+                    cart: this.state.cart,
+                    menus: this.state.menus
                 })
             })
             .catch(error => console.log(error))
 
     };
 
-
-    Edit = selectedItem => {
-        $("#modal_transaksi").show()
-        this.setState({
-            action: "update",
-            id_transaksi: selectedItem.id_transaksi,
-            status: selectedItem.status,
-        })
+    getQty(itemId) {
+        const item = this.state.cart.find((item) => item.id_menu === itemId);
+        return item ? item.qty : 0;
     }
+    getHarga(itemId) {
+        const item = this.state.cart.find((item) => item.id_menu === itemId);
+        const menu = this.state.menus.find((item) => item.id_menu === itemId);
+        return item ? menu.harga * item.qty : 0;
+    }
+    // getTotalBayar(itemId) {
+    //     var item = []
+    //     item.push(this.state.cart.find((item) => item.id_menu === itemId))
+    //     var menu = []
+    //     menu.push(this.state.menus.find((item) => item.id_menu === itemId))
+    //     var totalBayar = 0
+    //     for (var i = 0; i < item.length; i++) {
+    //         totalBayar += menu[i].harga * item[i].qty
+    //     }
+    //     return totalBayar
+    // }
     saveTransaksi = (event) => {
         event.preventDefault()
         $("#modal_transaksi").show()
@@ -176,15 +191,16 @@ export default class Pemesanan extends React.Component {
                 .then(response => {
                     window.alert(response.data.message)
                     axios.put("http://localhost:4040/kasir_kafe/meja/", data, this.headerConfig())
-                    window.location.reload()
+                    window.location = '/kasir/riwayat'
                     this.getMenu()
+
                 })
                 .catch(error => console.log(error))
         } else if (this.state.jenis_pesanan === "dibungkus") {
             axios.post(url, sendData, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
-                    window.location.reload()
+                    window.location = '/kasir/riwayat'
                     this.getMenu()
                 })
                 .catch(error => console.log(error))
@@ -260,38 +276,14 @@ export default class Pemesanan extends React.Component {
             <div className='flex h-screen w-full'>
                 <div class="w-full h-screen">
                     <Navbar />
-                        <table class="w-full text-sm text-left mt-20 text-gray-500 dark:text-gray-400">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3">
-                                        ID Menu
-                                    </th>
-                                    <th scope="col" class="px-6 py-3">
-                                        QTY
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {this.state.cart.map((item) => (
-                                    <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" key={item.id_menu}>
-                                        <td class="px-6 py-4">
-                                            {item.id_menu}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            {item.qty}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    <div class=" relative overflow-x-auto shadow-md sm:rounded-lg m-2 mt-6">
+                    <div class=" relative overflow-x-auto shadow-md sm:rounded-lg m-2 mt-20">
                         <h2 className="dark:text-white mb-6 text-xl font-sans ml-3 mt-1">Daftar Menu
                             <button className="hover:bg-green-500 float-right mr-3 bg-green-600 text-white font-bold uppercase text-xs px-4 py-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.Add()}>
                                 Pesan
                             </button>
                         </h2>
                         <div className="grid grid-cols-4">
-                            {this.state.menu.map((item, index) => (
+                            {this.state.menu.map((item) => (
                                 <div class="max-w-sm bg-white border m-3 border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" key={item.id_menu}>
                                     <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
                                     <div class="p-5">
@@ -304,12 +296,12 @@ export default class Pemesanan extends React.Component {
                                         <button type="button" onClick={() => this.handleMinus(item)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                             <HiOutlineMinus><span class="sr-only">Kurang</span></HiOutlineMinus>
                                         </button>
-                                        <button type="button" onClick={() => this.AddDetail(item, index)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                        <button type="button" onClick={() => this.AddDetail(item)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                             <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
                                         </button>
-                                        {/* <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
-                                            <span  class="font-medium text-gray-200 ">{this.state.qty}</span>
-                                        </div> */}
+                                        <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
+                                            <span class="font-medium text-gray-200 ">{this.getQty(item.id_menu)}</span>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -319,14 +311,57 @@ export default class Pemesanan extends React.Component {
                 {/* Modal */}
                 <div id="modal_transaksi" tabindex="-1" aria-hidden="true" class="overflow-x-auto fixed top-0 left-0 right-0 z-50 hidden w-full p-4 md:inset-0 h-modal md:h-full bg-tranparent bg-black bg-opacity-50">
                     <div class="flex lg:h-auto w-auto justify-center ">
-                        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 w-1/3">
+                        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 w-auto">
                             <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" onClick={() => this.close()}>
                                 <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 <span class="sr-only">Tutup modal</span>
                             </button>
                             <div class="px-6 py-6 lg:px-8">
-                                <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Pemesanan</h3>
-                                <form class="space-y-6" onSubmit={(event) => this.saveTransaksi(event)}>
+                                <h3 class="text-xl font-medium text-gray-900 dark:text-white">Pemesanan</h3>
+                                <div class="space-y-6">
+                                    {/* {this.state.menus.map((item,index) => (
+                                        <div className="px-6 py-4" key={index}>
+                                            Total Bayar: {this.convertToRupiah(this.getTotalBayar(item.id_menu))}
+                                        </div>
+                                    ))} */}
+                                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-900 dark:text-gray-400">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3">
+                                                    Nama Menu
+                                                </th>
+                                                <th scope="col" class="px-6 py-3">
+                                                    Harga
+                                                </th>
+                                                <th scope="col" class="px-6 py-3">
+                                                    qty
+                                                </th>
+                                                <th scope="col" class="px-6 py-3">
+                                                    Total
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {this.state.menus.map((item) => (
+                                                <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" key={item.id_menu}>
+                                                    <td class="px-6 py-4">
+                                                        {item.nama_menu}
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        {this.convertToRupiah(item.harga)}
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        {this.getQty(item.id_menu)}
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        {this.convertToRupiah(this.getHarga(item.id_menu))}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <form class="space-y-6 mt-6" onSubmit={(event) => this.saveTransaksi(event)}>
                                     <div>
                                         <label for="nama_pelanggan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nama Pelanggan</label>
                                         <input type="text" name="nama_pelanggan" id="nama_pelanggan" value={this.state.nama_pelanggan} onChange={this.bind} class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Masukkan nama pelanggan" required />
