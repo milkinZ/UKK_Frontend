@@ -8,7 +8,8 @@ export default class Pemesanan extends React.Component {
     constructor() {
         super()
         this.state = {
-            menu: [],
+            makanan: [],
+            minuman: [],
             meja: [],
             menus: [],
             action: "",
@@ -36,11 +37,29 @@ export default class Pemesanan extends React.Component {
         return header;
     }
 
-    getMenu = () => {
-        let url = "http://localhost:4040/kasir_kafe/menu/"
+    getMakanan = () => {
+        let url = "http://localhost:4040/kasir_kafe/menu/jenis/makanan"
         axios.get(url, this.headerConfig())
             .then(response => {
-                this.setState({ menu: response.data.data })
+                this.setState({ makanan: response.data.data })
+            })
+            .catch(error => {
+                if (error.response) {
+                    if (error.response.status) {
+                        window.alert(error.response.data.message)
+                        window.location = '/'
+                    }
+                } else {
+                    console.log(error);
+                }
+            })
+    }
+
+    getMinuman = () => {
+        let url = "http://localhost:4040/kasir_kafe/menu/jenis/minuman"
+        axios.get(url, this.headerConfig())
+            .then(response => {
+                this.setState({ minuman: response.data.data })
             })
             .catch(error => {
                 if (error.response) {
@@ -222,7 +241,8 @@ export default class Pemesanan extends React.Component {
         this.setState({ [event.target.name]: event.target.value })
     }
     componentDidMount() {
-        this.getMenu()
+        this.getMakanan()
+        this.getMinuman()
         this.getMeja()
     }
     close = () => {
@@ -277,13 +297,41 @@ export default class Pemesanan extends React.Component {
                 <div class="w-full h-screen">
                     <Navbar />
                     <div class=" relative overflow-x-auto shadow-md sm:rounded-lg m-2 mt-20">
-                        <h2 className="dark:text-white mb-6 text-xl font-sans ml-3 mt-1">Daftar Menu
-                            <button className="hover:bg-green-500 float-right mr-3 bg-green-600 text-white font-bold uppercase text-xs px-4 py-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.Add()}>
-                                Pesan
+                        <div className="flex justify-between items-center mb-1">
+                            <h2 className="dark:text-white text-xl font-sans ml-3">Daftar Menu</h2>
+                            <button className="hover:bg-green-500 mr-3 bg-green-600 text-white font-bold uppercase text-xs py-3 px-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.Add()}>
+                                Tambah Menu
                             </button>
-                        </h2>
+                        </div>
+                        <hr></hr>
+                        <h2 className="dark:text-white mt-2 text-xl font-serif ml-3">Daftar Minuman</h2>
                         <div className="grid grid-cols-4">
-                            {this.state.menu.map((item) => (
+                            {this.state.minuman.map((item) => (
+                                <div class="max-w-sm bg-white border m-3 border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" key={item.id_menu}>
+                                    <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
+                                    <div class="p-5">
+                                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{item.nama_menu}</h5>
+                                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">ID Menu: {item.id_menu}</p>
+                                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Jenis: {item.jenis}</p>
+                                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Deskripsi: {item.deskripsi}</p>
+                                        <p class="mb-6 font-normal text-gray-700 dark:text-gray-400">Harga: {this.convertToRupiah(item.harga)}</p>
+
+                                        <button type="button" onClick={() => this.handleMinus(item)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                            <HiOutlineMinus><span class="sr-only">Kurang</span></HiOutlineMinus>
+                                        </button>
+                                        <button type="button" onClick={() => this.AddDetail(item)} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                            <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
+                                        </button>
+                                        <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
+                                            <span class="font-medium text-gray-200 ">{this.getQty(item.id_menu)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <h2 className="dark:text-white mt-2 text-xl font-serif ml-3">Daftar Makanan</h2>
+                        <div className="grid grid-cols-4">
+                            {this.state.makanan.map((item) => (
                                 <div class="max-w-sm bg-white border m-3 border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" key={item.id_menu}>
                                     <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
                                     <div class="p-5">

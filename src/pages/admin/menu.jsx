@@ -7,7 +7,8 @@ export default class Menu extends React.Component {
     constructor() {
         super()
         this.state = {
-            menu: [],
+            makanan: [],
+            minuman: [],
             action: "",
             token: "",
             id_menu: 0,
@@ -29,11 +30,29 @@ export default class Menu extends React.Component {
         }
         return header;
     }
-    getMenu = () => {
-        let url = "http://localhost:4040/kasir_kafe/menu/"
+    getMakanan = () => {
+        let url = "http://localhost:4040/kasir_kafe/menu/jenis/makanan"
         axios.get(url, this.headerConfig())
             .then(response => {
-                this.setState({ menu: response.data.data })
+                this.setState({ makanan: response.data.data })
+            })
+            .catch(error => {
+                if (error.response) {
+                    if (error.response.status) {
+                        window.alert(error.response.data.message)
+                        window.location = '/'
+                    }
+                } else {
+                    console.log(error);
+                }
+            })
+    }
+
+    getMinuman = () => {
+        let url = "http://localhost:4040/kasir_kafe/menu/jenis/minuman"
+        axios.get(url, this.headerConfig())
+            .then(response => {
+                this.setState({ minuman: response.data.data })
             })
             .catch(error => {
                 if (error.response) {
@@ -66,7 +85,7 @@ export default class Menu extends React.Component {
             nama_menu: selectedItem.nama_menu,
             jenis: selectedItem.jenis,
             deskripsi: selectedItem.deskripsi,
-            gambar: null,
+            gambar: selectedItem.gambar,
             harga: selectedItem.harga,
             action: "update"
         })
@@ -120,7 +139,8 @@ export default class Menu extends React.Component {
         this.setState({ [event.target.name]: event.target.value })
     }
     componentDidMount() {
-        this.getMenu()
+        this.getMakanan()
+        this.getMinuman()
     }
     close = () => {
         $("#modal_menu").hide()
@@ -173,13 +193,35 @@ export default class Menu extends React.Component {
                 <div class="w-full h-screen">
                     <Navbar />
                     <div class=" relative mt-20 overflow-x-auto shadow-md sm:rounded-lg m-2">
-                        <h2 className="dark:text-white mb-6 text-xl font-sans ml-3">Daftar Menu
-                            <button className="hover:bg-green-500 float-right mr-3 bg-green-600 text-white font-bold uppercase text-xs px-4 py-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.Add()}>
+                        <div className="flex justify-between items-center mb-1">
+                            <h2 className="dark:text-white text-xl font-sans ml-3">Daftar Menu</h2>
+                            <button className="hover:bg-green-500 mr-3 bg-green-600 text-white font-bold uppercase text-xs py-3 px-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.Add()}>
                                 Tambah Menu
                             </button>
-                        </h2>
+                        </div>
+                        <hr></hr>
+                        <h2 className="dark:text-white mt-2 text-xl font-serif ml-3">Daftar Minuman</h2>
                         <div className="grid grid-cols-4">
-                            {this.state.menu.map(item => (
+                            {this.state.minuman.map(item => (
+                                <div class="max-w-sm bg-white border m-3 border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" key={item.id_menu}>
+
+                                    <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
+                                    <div class="p-5">
+                                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{item.nama_menu}</h5>
+                                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Jenis: {item.jenis}</p>
+                                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Deskripsi: {item.deskripsi}</p>
+                                        <p class="mb-6 font-normal text-gray-700 dark:text-gray-400">Harga: {this.convertToRupiah(item.harga)}</p>
+                                        <div className="text-start flex">
+                                            <a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline mr-4" onClick={() => this.Edit(item)}>Edit</a>
+                                            <a href="#" class="font-medium text-blue-600 dark:text-blue-500 hover:underline" onClick={() => this.dropMenu(item)}>Hapus</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <h2 className="dark:text-white mt-2 text-xl font-serif ml-3">Daftar Makanan</h2>
+                        <div className="grid grid-cols-4">
+                            {this.state.makanan.map(item => (
                                 <div class="max-w-sm bg-white border m-3 border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" key={item.id_menu}>
 
                                     <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
@@ -227,7 +269,7 @@ export default class Menu extends React.Component {
                                     </div>
                                     <div>
                                         <label for="gambar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Gambar</label>
-                                        <input type="file" name="gambar" id="gambar" placeholder="Pilih gambar menu" onChange={this.handleFile} class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required />
+                                        <input type="file" name="gambar" id="gambar" placeholder="Pilih gambar menu" onChange={this.handleFile} class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
                                     </div>
                                     <div>
                                         <label for="harga" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Harga</label>

@@ -8,10 +8,11 @@ export default class User extends React.Component {
         super()
         this.state = {
             detail_transaksi: [],
-            transaksi: [],
+            transaksiBelumBayar: [],
+            transaksiLunas: [],
             menu: [],
             meja: [],
-            token:'',
+            token: '',
             id_transaksi: 0,
             status: '',
         }
@@ -63,12 +64,31 @@ export default class User extends React.Component {
             })
     }
 
-    getTransaksi = () => {
+    getTransaksiBelumBayar = () => {
         let user = JSON.parse(localStorage.getItem('user'))
         let url = "http://localhost:4040/kasir_kafe/pemesanan/riwayat/belum_bayar/" + user.id_user
         axios.get(url, this.headerConfig())
             .then(response => {
-                this.setState({ transaksi: response.data.data })
+                this.setState({ transaksiBelumBayar: response.data.data })
+            })
+            .catch(error => {
+                if (error.response) {
+                    if (error.response.status) {
+                        window.alert(error.response.data.message)
+                        window.location = '/'
+                    }
+                } else {
+                    console.log(error);
+                }
+            })
+    }
+
+    getTransaksiLunas = () => {
+        let user = JSON.parse(localStorage.getItem('user'))
+        let url = "http://localhost:4040/kasir_kafe/pemesanan/riwayat/lunas/" + user.id_user
+        axios.get(url, this.headerConfig())
+            .then(response => {
+                this.setState({ transaksiLunas: response.data.data })
             })
             .catch(error => {
                 if (error.response) {
@@ -114,7 +134,6 @@ export default class User extends React.Component {
         axios.put('http://localhost:4040/kasir_kafe/meja/', data, this.headerConfig())
             .then(response => {
                 window.alert(response.data.message)
-                this.getDetail()
                 window.location.reload()
             })
             .catch(error => console.log(error))
@@ -122,7 +141,8 @@ export default class User extends React.Component {
     componentDidMount() {
         this.getMeja()
         this.getMenu()
-        this.getTransaksi()
+        this.getTransaksiBelumBayar()
+        this.getTransaksiLunas()
     }
 
     convertTime = time => {
@@ -139,15 +159,18 @@ export default class User extends React.Component {
                 <div class="w-full h-screen">
                     <Navbar />
                     <div class="relative mt-20 overflow-x-auto shadow-md sm:rounded-lg m-2">
-                        <h2 className="dark:text-white text-lg font-sans mb-2">Riwayat Pemesanan
-                        </h2>
+                        <div className="flex justify-between items-center">
+                            <h2 className="dark:text-white text-xl font-sans ml-3">Riwayat Pemesanan</h2>
+                        </div>
+                        <hr></hr>
+                        <h2 className="dark:text-white text-lg font-serif mt-6 ml-3">Belum Bayar</h2>
                         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th scope="col" class="px-6 py-3">
                                         Nama Pelanggan
                                     </th>
-                                    <th scope="col" class="px-6 py-3 flex items-center">
+                                    <th scope="col" class="px-6 py-3">
                                         Nomor Meja
                                     </th>
                                     <th scope="col" class="px-6 py-3 ">
@@ -165,8 +188,8 @@ export default class User extends React.Component {
                                 </tr>
                             </thead>
                             <tbody>
-                                {this.state.transaksi.map(item => (
-                                    <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" onClick={() => this.getDetail(item)} key={item.id_transaksi}>
+                                {this.state.transaksiBelumBayar.map(item => (
+                                    <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" key={item.id_transaksi}>
                                         <td class="px-6 py-4">
                                             {item.nama_pelanggan}
                                         </td>
@@ -189,6 +212,52 @@ export default class User extends React.Component {
                                 ))}
                             </tbody>
                         </table>
+                        <h2 className="dark:text-white text-lg font-serif mt-6 ml-3">Lunas</h2>
+                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        Nama Pelanggan
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        Nomor Meja
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 ">
+                                        Tanggal Pemesanan
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 ">
+                                        Jenis Pesanan
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 ">
+                                        Status
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        <span class="sr-only">Edit</span>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.state.transaksiLunas.map(item => (
+                                    <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" onClick={() => this.getDetail(item)} key={item.id_transaksi}>
+                                        <td class="px-6 py-4">
+                                            {item.nama_pelanggan}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {item.meja.nomor_meja}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {this.convertTime(item.tgl_transaksi)}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {item.jenis_pesanan}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {item.status}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 {/* Modal */}
@@ -202,29 +271,29 @@ export default class User extends React.Component {
                             <div class="px-6 py-6 lg:px-8">
                                 <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Detail Pemesanan</h3>
                                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3">
-                                        Nama Menu
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 flex items-center">
-                                        Jumlah
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {this.state.detail_transaksi.map(item => (
-                                    <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"key={item.id_detail_transaksi}>
-                                        <td class="px-6 py-4">
-                                            {item.menu.nama_menu}
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            {item.qty}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3">
+                                                Nama Menu
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                                Jumlah
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {this.state.detail_transaksi.map(item => (
+                                            <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" key={item.id_detail_transaksi}>
+                                                <td class="px-6 py-4">
+                                                    {item.menu.nama_menu}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {item.qty}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
