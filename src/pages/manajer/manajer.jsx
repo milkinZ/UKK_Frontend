@@ -22,9 +22,11 @@ export default class Manajer extends React.Component {
         },
       },
     };
-    if (localStorage.getItem("token")) {
+    let user = JSON.parse(localStorage.getItem('user'))
+    if (localStorage.getItem("token") && user.role === "manajer") {
       this.state.token = localStorage.getItem("token")
     } else {
+      window.alert("Maaf, anda bukan manajer")
       window.location = "/"
     }
   }
@@ -205,9 +207,9 @@ export default class Manajer extends React.Component {
                   <th scope="col" class="px-6 py-3">
                     Nama Pelanggan
                   </th>
-                  <th scope="col" class="px-6 py-3 ">
+                  {/* <th scope="col" class="px-6 py-3 ">
                     Nomor Meja
-                  </th>
+                  </th> */}
                   <th scope="col" class="px-6 py-3 ">
                     Petugas
                   </th>
@@ -228,9 +230,9 @@ export default class Manajer extends React.Component {
                     <td class="px-6 py-4">
                       {item.nama_pelanggan}
                     </td>
-                    <td class="px-6 py-4">
+                    {/* <td class="px-6 py-4">
                       {item.meja.nomor_meja}
-                    </td>
+                    </td> */}
                     <td class="px-6 py-4">
                       {item.user.nama_user}
                     </td>

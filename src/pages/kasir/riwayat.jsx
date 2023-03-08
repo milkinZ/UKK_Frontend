@@ -12,13 +12,16 @@ export default class User extends React.Component {
             transaksiLunas: [],
             menu: [],
             meja: [],
+            nomor_meja: "",
             token: '',
             id_transaksi: 0,
             status: '',
         }
-        if (localStorage.getItem("token")) {
+        let user = JSON.parse(localStorage.getItem('user'))
+        if (localStorage.getItem("token") && user.role === 'kasir') {
             this.state.token = localStorage.getItem("token")
         } else {
+            window.alert("Maaf, anda bukan kasir")
             window.location = "/"
         }
     }
@@ -170,9 +173,9 @@ export default class User extends React.Component {
                                     <th scope="col" class="px-6 py-3">
                                         Nama Pelanggan
                                     </th>
-                                    <th scope="col" class="px-6 py-3">
+                                    {/* <th scope="col" class="px-6 py-3">
                                         Nomor Meja
-                                    </th>
+                                    </th> */}
                                     <th scope="col" class="px-6 py-3 ">
                                         Tanggal Pemesanan
                                     </th>
@@ -193,9 +196,9 @@ export default class User extends React.Component {
                                         <td class="px-6 py-4">
                                             {item.nama_pelanggan}
                                         </td>
-                                        <td class="px-6 py-4">
-                                            {item.meja.nomor_meja}
-                                        </td>
+                                        {/* <td class="px-6 py-4">
+                                            {this.state.nomor_meja}
+                                        </td> */}
                                         <td class="px-6 py-4">
                                             {this.convertTime(item.tgl_transaksi)}
                                         </td>
@@ -219,9 +222,9 @@ export default class User extends React.Component {
                                     <th scope="col" class="px-6 py-3">
                                         Nama Pelanggan
                                     </th>
-                                    <th scope="col" class="px-6 py-3">
+                                    {/* <th scope="col" class="px-6 py-3">
                                         Nomor Meja
-                                    </th>
+                                    </th> */}
                                     <th scope="col" class="px-6 py-3 ">
                                         Tanggal Pemesanan
                                     </th>
@@ -242,9 +245,9 @@ export default class User extends React.Component {
                                         <td class="px-6 py-4">
                                             {item.nama_pelanggan}
                                         </td>
-                                        <td class="px-6 py-4">
+                                        {/* <td class="px-6 py-4">
                                             {item.meja.nomor_meja}
-                                        </td>
+                                        </td> */}
                                         <td class="px-6 py-4">
                                             {this.convertTime(item.tgl_transaksi)}
                                         </td>

@@ -18,9 +18,11 @@ export default class Menu extends React.Component {
             gambar: null,
             harga: ''
         }
-        if (localStorage.getItem("token")) {
+        let user = JSON.parse(localStorage.getItem('user'))
+        if (localStorage.getItem("token") && user.role ==='admin') {
             this.state.token = localStorage.getItem("token")
         } else {
+            window.alert("Maaf, anda bukan admin")
             window.location = "/"
         }
     }

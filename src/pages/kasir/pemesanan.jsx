@@ -22,11 +22,13 @@ export default class Pemesanan extends React.Component {
             status: '',
             jenis_pesanan: '',
             cart: [],
-            total: [],
+            totalBayar: 0,
         }
-        if (localStorage.getItem("token")) {
+        let user = JSON.parse(localStorage.getItem('user'))
+        if (localStorage.getItem("token") && user.role === "kasir") {
             this.state.token = localStorage.getItem("token")
         } else {
+            window.alert("Maaf, anda bukan kasir")
             window.location = "/"
         }
     }
@@ -115,8 +117,12 @@ export default class Pemesanan extends React.Component {
                     }
                     this.state.cart.push(keranjang)
                     this.state.menus.push(res.data.data)
+                    var harga1 = this.state.menus.find(item => item.id_menu === value.id_menu).harga
+                    this.setState({ totalBayar: harga1 })
                 } else if (this.state.cart.find(item => item.id_menu === value.id_menu)) {
                     this.state.cart.find(item => item.id_menu === value.id_menu).qty++
+                    var harga2 = this.state.menus.find(item => item.id_menu === value.id_menu).harga
+                    this.setState({ totalBayar: this.state.totalBayar + harga2 })
                 } else if (this.state.cart.find(item => item.id_menu !== value.id_menu)) {
                     const keranjang = {
                         id_menu: value.id_menu,
@@ -124,17 +130,14 @@ export default class Pemesanan extends React.Component {
                     }
                     this.state.cart.push(keranjang)
                     this.state.menus.push(res.data.data)
+                    var harga = this.state.menus.find(item => item.id_menu === value.id_menu).harga
+                    this.setState({ totalBayar: this.state.totalBayar + harga })
                 }
-                // const menuId = value.id_menu; // id menu yang dicari
-                // const order = this.state.cart.find(order => order.id_menu === menuId);// mencari objek dengan id menu yang dicari
-                // const qty = order.qty;
-                // this.setState({
-                //     qty: qty
-                // })
                 this.setState({
                     cart: this.state.cart,
                     menus: this.state.menus
                 })
+                console.log(this.state.menus)
             })
             .catch(error => console.log(error))
     };
@@ -150,6 +153,8 @@ export default class Pemesanan extends React.Component {
                 } else if (this.state.cart.find(item => item.id_menu === value.id_menu)) {
                     if (this.state.cart.find(item => item.qty > 0)) {
                         this.state.cart.find(item => item.id_menu === value.id_menu).qty--
+                        var harga = this.state.menus.find(item => item.id_menu === value.id_menu).harga
+                        this.setState({ totalBayar: this.state.totalBayar - harga })
                     } else {
                         window.alert("Belum ada yang dipesan")
                     }
@@ -176,25 +181,25 @@ export default class Pemesanan extends React.Component {
         const menu = this.state.menus.find((item) => item.id_menu === itemId);
         return item ? menu.harga * item.qty : 0;
     }
-    // getTotalBayar(itemId) {
-    //     var item = []
-    //     item.push(this.state.cart.find((item) => item.id_menu === itemId))
-    //     var menu = []
-    //     menu.push(this.state.menus.find((item) => item.id_menu === itemId))
-    //     var totalBayar = 0
-    //     for (var i = 0; i < item.length; i++) {
-    //         totalBayar += menu[i].harga * item[i].qty
-    //     }
-    //     return totalBayar
-    // }
+
     saveTransaksi = (event) => {
         event.preventDefault()
         $("#modal_transaksi").show()
-        let sendData = {
+        let sendDataDitempat = {
             id_transaksi: this.state.id_transaksi,
             tgl_transaksi: this.state.tgl_transaksi,
             id_user: this.state.id_user,
             id_meja: this.state.id_meja,
+            nama_pelanggan: this.state.nama_pelanggan,
+            status: this.state.status,
+            jenis_pesanan: this.state.jenis_pesanan,
+            detail_transaksi: this.state.cart
+        }
+        let sendDataBungkus = {
+            id_transaksi: this.state.id_transaksi,
+            tgl_transaksi: this.state.tgl_transaksi,
+            id_user: this.state.id_user,
+            id_meja: null,
             nama_pelanggan: this.state.nama_pelanggan,
             status: this.state.status,
             jenis_pesanan: this.state.jenis_pesanan,
@@ -206,7 +211,7 @@ export default class Pemesanan extends React.Component {
         }
         let url = "http://localhost:4040/kasir_kafe/pemesanan"
         if (this.state.jenis_pesanan === "ditempat") {
-            axios.post(url, sendData, this.headerConfig())
+            axios.post(url, sendDataDitempat, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
                     axios.put("http://localhost:4040/kasir_kafe/meja/", data, this.headerConfig())
@@ -215,8 +220,8 @@ export default class Pemesanan extends React.Component {
 
                 })
                 .catch(error => console.log(error))
-        } else if (this.state.jenis_pesanan === "dibungkus") {
-            axios.post(url, sendData, this.headerConfig())
+        } else if (this.state.jenis_pesanan === "bungkus") {
+            axios.post(url, sendDataBungkus, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
                     window.location = '/kasir/riwayat'
@@ -291,6 +296,14 @@ export default class Pemesanan extends React.Component {
 
     }
 
+    nomorMejaShow = () => {
+        if (this.state.jenis_pesanan === "ditempat") {
+            $("#meja").show()
+        } else {
+            $("#meja").hide()
+        }
+    }
+
     render() {
         return (
             <div className='flex h-screen w-full'>
@@ -300,7 +313,7 @@ export default class Pemesanan extends React.Component {
                         <div className="flex justify-between items-center mb-1">
                             <h2 className="dark:text-white text-xl font-sans ml-3">Daftar Menu</h2>
                             <button className="hover:bg-green-500 mr-3 bg-green-600 text-white font-bold uppercase text-xs py-3 px-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.Add()}>
-                                Tambah Menu
+                                Pesan
                             </button>
                         </div>
                         <hr></hr>
@@ -311,7 +324,6 @@ export default class Pemesanan extends React.Component {
                                     <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
                                     <div class="p-5">
                                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{item.nama_menu}</h5>
-                                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">ID Menu: {item.id_menu}</p>
                                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Jenis: {item.jenis}</p>
                                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Deskripsi: {item.deskripsi}</p>
                                         <p class="mb-6 font-normal text-gray-700 dark:text-gray-400">Harga: {this.convertToRupiah(item.harga)}</p>
@@ -336,7 +348,6 @@ export default class Pemesanan extends React.Component {
                                     <img class="rounded-t-lg" src={`http://localhost:4040/img/${item.gambar}`} alt="gambar" />
                                     <div class="p-5">
                                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{item.nama_menu}</h5>
-                                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">ID Menu: {item.id_menu}</p>
                                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Jenis: {item.jenis}</p>
                                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Deskripsi: {item.deskripsi}</p>
                                         <p class="mb-6 font-normal text-gray-700 dark:text-gray-400">Harga: {this.convertToRupiah(item.harga)}</p>
@@ -367,11 +378,6 @@ export default class Pemesanan extends React.Component {
                             <div class="px-6 py-6 lg:px-8">
                                 <h3 class="text-xl font-medium text-gray-900 dark:text-white">Pemesanan</h3>
                                 <div class="space-y-6">
-                                    {/* {this.state.menus.map((item,index) => (
-                                        <div className="px-6 py-4" key={index}>
-                                            Total Bayar: {this.convertToRupiah(this.getTotalBayar(item.id_menu))}
-                                        </div>
-                                    ))} */}
                                     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                                         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-900 dark:text-gray-400">
                                             <tr>
@@ -382,10 +388,10 @@ export default class Pemesanan extends React.Component {
                                                     Harga
                                                 </th>
                                                 <th scope="col" class="px-6 py-3">
-                                                    qty
+                                                    Jumlah
                                                 </th>
                                                 <th scope="col" class="px-6 py-3">
-                                                    Total
+                                                    Total Harga
                                                 </th>
                                             </tr>
                                         </thead>
@@ -408,6 +414,9 @@ export default class Pemesanan extends React.Component {
                                             ))}
                                         </tbody>
                                     </table>
+                                    <div className="bg-gray-100 p-2 border-2 hover:bg-gray-200">
+                                        <p className="font-sans text-gray-700">Total Bayar: {this.convertToRupiah(this.state.totalBayar)}</p>
+                                    </div>
                                 </div>
                                 <form class="space-y-6 mt-6" onSubmit={(event) => this.saveTransaksi(event)}>
                                     <div>
@@ -416,16 +425,15 @@ export default class Pemesanan extends React.Component {
                                     </div>
                                     <div>
                                         <label for="jenis" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jenis Pesanan</label>
-                                        <select className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Jenis Pesanan" name="jenis_pesanan" value={this.state.jenis_pesanan} onChange={this.bind} required>
+                                        <select onClick={() => this.nomorMejaShow()} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Jenis Pesanan" name="jenis_pesanan" value={this.state.jenis_pesanan} onChange={this.bind} required>
                                             <option value=''>Pilih Jenis Pesanan</option>
                                             <option value="ditempat">Makan Ditempat</option>
-                                            <option value="dibungkus">Dibungkus</option>
+                                            <option value="bungkus">Dibungkus</option>
                                         </select>
                                     </div>
-
-                                    <div>
+                                    <div className="hidden modal" aria-hidden="true" id="meja">
                                         <label for="jenis" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Meja</label>
-                                        <select className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Jenis Pesanan" name="id_meja" value={this.state.id_meja} onChange={this.bind} required>
+                                        <select className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Jenis Pesanan" name="id_meja" value={this.state.id_meja} onChange={this.bind}>
                                             <option value="">Pilih Meja</option>
                                             {this.state.meja.map(item => (
                                                 <option value={item.id_meja}>{item.nomor_meja}: {item.status_meja}</option>

@@ -14,9 +14,11 @@ export default class Meja extends React.Component {
             nomor_meja: "",
             status_meja: ""
         }
-        if (localStorage.getItem("token")) {
+        let user = JSON.parse(localStorage.getItem('user'))
+        if (localStorage.getItem("token") && user.role ==="admin") {
             this.state.token = localStorage.getItem("token")
         } else {
+            window.alert("Maaf, anda bukan admin")
             window.location = "/"
         }
     }
@@ -68,6 +70,7 @@ export default class Meja extends React.Component {
 
     Add = () => {
         $("#modal_meja").show()
+        $("#status").hide()
         this.setState({
             id_meja: 0,
             nomor_meja: "",
@@ -77,6 +80,7 @@ export default class Meja extends React.Component {
     }
     Edit = selectedItem => {
         $("#modal_meja").show()
+        $("#status").show()
         this.setState({
             action: "update",
             id_meja: selectedItem.id_meja,
@@ -210,7 +214,7 @@ export default class Meja extends React.Component {
                                         <label for="nomor_meja" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nomor Meja</label>
                                         <input type="text" name="nomor_meja" id="nomor_meja" value={this.state.nomor_meja} onChange={this.bind} class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Masukkan nomor meja" required />
                                     </div>
-                                    <div>
+                                    <div className="hidden modal" aria-hidden="true" id="status">
                                         <label for="role" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status Meja</label>
                                         <select className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="Status Meja" name="status_meja" value={this.state.status_meja} onChange={this.bind}>
                                             <option value="">Pilih Status Meja</option>

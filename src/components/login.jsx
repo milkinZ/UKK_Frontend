@@ -35,7 +35,7 @@ export default class Login extends React.Component {
                     this.state.role = user.role
 
                     if (this.state.role === "admin") {
-                        window.location = '/admin/user'
+                        window.location = '/admin/menu'
                     } else if (this.state.role === "kasir") {
                         window.location = '/kasir/pemesanan'
                     } else if (this.state.role === "manajer") {

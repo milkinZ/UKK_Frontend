@@ -17,9 +17,11 @@ export default class User extends React.Component {
             password: "",
             fillpassword: true
         }
-        if (localStorage.getItem("token")) {
+        let user = JSON.parse(localStorage.getItem('user'))
+        if (localStorage.getItem("token") && user.role === 'admin') {
             this.state.token = localStorage.getItem("token")
         } else {
+            window.alert("Maaf, anda bukan admin")
             window.location = "/"
         }
     }
