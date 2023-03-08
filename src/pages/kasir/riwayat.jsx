@@ -2,6 +2,7 @@ import React from "react";
 import axios from "axios";
 import Navbar from "./navbar";
 import $ from "jquery";
+import { AiOutlineCheck } from 'react-icons/ai'
 
 export default class User extends React.Component {
     constructor() {
@@ -16,6 +17,7 @@ export default class User extends React.Component {
             token: '',
             id_transaksi: 0,
             status: '',
+            total: 0
         }
         let user = JSON.parse(localStorage.getItem('user'))
         if (localStorage.getItem("token") && user.role === 'kasir') {
@@ -122,6 +124,22 @@ export default class User extends React.Component {
                     console.log(error);
                 }
             })
+        if (selectedItem.status === "belum_bayar") {
+            $("#submit").show()
+        } else {
+            $("#submit").hide()
+        }
+    }
+
+    totalBayar = () => {
+        for (let i = 0; i < this.state.detail_transaksi.length; i++) {
+            var harga = this.state.detail_transaksi[i].menu.harga
+            var qty = this.state.detail_transaksi[i].qty
+            var subTotal = harga * qty
+            this.state.total = this.state.total + subTotal
+        }
+        let totalBayar = this.state.total
+        return totalBayar
     }
 
     Edit = selectedItem => {
@@ -154,6 +172,7 @@ export default class User extends React.Component {
     }
     close = () => {
         $("#modal_detail").hide()
+        this.state.total = 0
     }
 
     render() {
@@ -208,8 +227,10 @@ export default class User extends React.Component {
                                         <td class="px-6 py-4">
                                             {item.status}
                                         </td>
-                                        <td class="px-6 py-4 text-center flex justify-evenly">
-                                            <button className="hover:bg-green-500 float-right mr-3 bg-green-600 text-white font-bold uppercase text-xs px-4 py-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.Edit(item)}>Sudah Bayar</button>
+                                        <td class="px-2 py-4 text-center flex justify-center">
+                                            <button className="hover:bg-green-500 flex justify-center bg-green-600 text-white font-bold uppercase text-xs px-4 py-3 rounded-md shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.getDetail(item)}>
+                                                <AiOutlineCheck />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -297,6 +318,14 @@ export default class User extends React.Component {
                                         ))}
                                     </tbody>
                                 </table>
+                                <div className="bg-gray-100 p-2 border-2 mb-2 hover:bg-gray-200">
+                                    <p className="font-sans text-gray-700">Total Bayar: {this.totalBayar()}</p>
+                                </div>
+                                {this.state.transaksiBelumBayar.map(item => (
+                                    <div className="hidden" id="submit">
+                                        <button className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button" onClick={() => this.Edit(item)}>Sudah Bayar</button>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
