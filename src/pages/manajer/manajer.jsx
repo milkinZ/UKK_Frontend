@@ -3,6 +3,7 @@ import Chart from "react-apexcharts";
 import Navbar from "./navbar";
 import axios from "axios";
 import $ from 'jquery';
+import 'flowbite-datepicker';
 
 export default class Manajer extends React.Component {
   constructor(props) {
@@ -11,8 +12,13 @@ export default class Manajer extends React.Component {
       token: '',
       nama_user: "",
       data: [],
+      total: 0,
+      pendapatan: 0,
       transaksi: [],
       detail_transaksi: [],
+      detail: [],
+      awal: "",
+      akhir: "",
       options: {
         chart: {
           id: "basic-bar",
@@ -73,6 +79,24 @@ export default class Manajer extends React.Component {
         }
       })
   }
+  getTransaksiTanggal = (event) => {
+    event.preventDefault()
+    let url = `http://localhost:4040/kasir_kafe/pemesanan/tanggal/${this.timeAwal(this.state.awal)}/${this.timeAkhir(this.state.akhir)}`
+    axios.get(url, this.headerConfig())
+      .then(response => {
+        this.setState({ transaksi: response.data.data })
+      })
+      .catch(error => {
+        if (error.response) {
+          if (error.response.status) {
+            window.alert(error.response.data.message)
+            window.location = '/'
+          }
+        } else {
+          console.log(error);
+        }
+      })
+  }
   getDetail = (selectedItem) => {
     $("#modal_detail").show()
     axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/" + selectedItem.id_transaksi, this.headerConfig())
@@ -89,6 +113,31 @@ export default class Manajer extends React.Component {
           console.log(error);
         }
       })
+      console.log(this.state.awal)
+  }
+  getDetailTransaksi = () => {
+    axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
+      .then(response => {
+        this.setState({ detail: response.data.data })
+      })
+      .catch(error => {
+        if (error.response) {
+          if (error.response.status) {
+            window.alert(error.response.data.message)
+            window.location = '/'
+          }
+        } else {
+          console.log(error);
+        }
+      })
+  }
+  timeAwal = time => {
+    let date = new Date(time)
+    return `${date.getFullYear()}-${Number(date.getMonth()) + 1}-${date.getDate()}`
+  }
+  timeAkhir = time => {
+    let date = new Date(time)
+    return `${date.getFullYear()}-${Number(date.getMonth()) + 1}-${date.getDate() + 1}`
   }
 
   convertTime = time => {
@@ -97,10 +146,12 @@ export default class Manajer extends React.Component {
   }
   close = () => {
     $("#modal_detail").hide()
+    this.state.total = 0
   }
 
   componentDidMount() {
     this.getTransaksi()
+    this.getDetailTransaksi()
     axios
       .get("http://localhost:4040/kasir_kafe/pemesanan/qtybymenu", this.headerConfig())
       .then((response) => {
@@ -137,6 +188,78 @@ export default class Manajer extends React.Component {
 
   bind = (event) => {
     this.setState({ [event.target.name]: event.target.value })
+  }
+  convertToRupiah(number) {
+
+    if (number) {
+
+      var rupiah = "";
+
+      var numberrev = number
+
+        .toString()
+
+        .split("")
+
+        .reverse()
+
+        .join("");
+
+      for (var i = 0; i < numberrev.length; i++)
+
+        if (i % 3 === 0) rupiah += numberrev.substr(i, 3) + ".";
+
+      return (
+
+        "Rp. " +
+
+        rupiah
+
+          .split("", rupiah.length - 1)
+
+          .reverse()
+
+          .join("")
+
+      );
+
+    } else {
+
+      return number;
+
+    }
+
+  }
+
+  totalBayar = () => {
+    for (let i = 0; i < this.state.detail_transaksi.length; i++) {
+      var harga = this.state.detail_transaksi[i].menu.harga
+      var qty = this.state.detail_transaksi[i].qty
+      var subTotal = harga * qty
+      this.state.total = this.state.total + subTotal
+    }
+    let totalBayar = this.state.total
+    return totalBayar
+  }
+  pendapatan = () => {
+    for (let i = 0; i < this.state.detail.length; i++) {
+      var harga = this.state.detail[i].menu.harga
+      var qty = this.state.detail[i].qty
+      var subTotal = harga * qty
+      this.state.pendapatan = this.state.pendapatan + subTotal
+    }
+    console.log(this.state.pendapatan)
+    console.log(this.state.detail)
+    return this.state.pendapatan
+  }
+
+  getNomorMeja = (value) => {
+    if (value.id_meja !== null) {
+      return value.meja.nomor_meja
+    } else {
+      return "tidak ada"
+    }
+
   }
 
   render() {
@@ -201,15 +324,48 @@ export default class Manajer extends React.Component {
                 </div>
               </form>
             </div>
+            <div className="bg-gray-100 p-2 border-2 mb-2 hover:bg-gray-200 flex justify-between items-center">
+              <p className="font-sans text-gray-700">Total Pendapatan: {this.convertToRupiah(this.pendapatan())}</p>
+
+              <div className="flex items-center">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  </div>
+                  <input
+                    onChange={this.bind}
+                    name="awal"
+                    type="date"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    placeholder="Select date start"
+                  />
+                </div>
+                <span className="mx-4 text-gray-500">to</span>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  </div>
+                  <input
+                    onChange={this.bind}
+                    name="akhir"
+                    type="date"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    placeholder="Select date end"
+                  />
+                </div>
+                <button className="ml-2 hover:bg-blue-800 mr-3 bg-blue-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={(event) => this.getTransaksiTanggal(event)}>
+                  Cari
+                </button>
+              </div>
+
+            </div>
             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 ">
               <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
                   <th scope="col" class="px-6 py-3">
                     Nama Pelanggan
                   </th>
-                  {/* <th scope="col" class="px-6 py-3 ">
+                  <th scope="col" class="px-6 py-3 ">
                     Nomor Meja
-                  </th> */}
+                  </th>
                   <th scope="col" class="px-6 py-3 ">
                     Petugas
                   </th>
@@ -230,9 +386,9 @@ export default class Manajer extends React.Component {
                     <td class="px-6 py-4">
                       {item.nama_pelanggan}
                     </td>
-                    {/* <td class="px-6 py-4">
-                      {item.meja.nomor_meja}
-                    </td> */}
+                    <td class="px-6 py-4">
+                      {this.getNomorMeja(item)}
+                    </td>
                     <td class="px-6 py-4">
                       {item.user.nama_user}
                     </td>
@@ -267,7 +423,7 @@ export default class Manajer extends React.Component {
                       <th scope="col" class="px-6 py-3">
                         Nama Menu
                       </th>
-                      <th scope="col" class="px-6 py-3 flex items-center">
+                      <th scope="col" class="px-6 py-3">
                         Jumlah
                       </th>
                     </tr>
@@ -285,10 +441,14 @@ export default class Manajer extends React.Component {
                     ))}
                   </tbody>
                 </table>
+                <div className="bg-gray-100 p-2 border-2 mb-2 hover:bg-gray-200">
+                  <p className="font-sans text-gray-700">Total Bayar: {this.convertToRupiah(this.totalBayar())}</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        {/* <script src="../path/to/flowbite/dist/datepicker.js"></script> */}
       </div>
     );
   }
