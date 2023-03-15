@@ -7,7 +7,6 @@ import User from './pages/admin/user';
 import Pemesanan from './pages/kasir/pemesanan';
 import Riwayat from './pages/kasir/riwayat'
 import Manajer from './pages/manajer/manajer';
-import Nota from './pages/kasir/nota';
 
 function App() {
   return (
@@ -19,7 +18,6 @@ function App() {
       <Route path='/kasir/pemesanan' element={<Pemesanan/>}/>
       <Route path='/kasir/riwayat' element={<Riwayat/>}/>
       <Route path='/manajer' element={<Manajer/>}/>
-      <Route path='/nota' element={<Nota/>}/>
     </Routes>
   )
 }
