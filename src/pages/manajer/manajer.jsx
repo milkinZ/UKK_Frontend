@@ -4,6 +4,7 @@ import Navbar from "./navbar";
 import axios from "axios";
 import $ from 'jquery';
 import 'flowbite-datepicker';
+import { SlRefresh } from 'react-icons/sl'
 
 export default class Manajer extends React.Component {
   constructor(props) {
@@ -113,24 +114,23 @@ export default class Manajer extends React.Component {
           console.log(error);
         }
       })
-      console.log(this.state.awal)
   }
-  getDetailTransaksi = () => {
-    axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
-      .then(response => {
-        this.setState({ detail: response.data.data })
-      })
-      .catch(error => {
-        if (error.response) {
-          if (error.response.status) {
-            window.alert(error.response.data.message)
-            window.location = '/'
-          }
-        } else {
-          console.log(error);
-        }
-      })
-  }
+  // getDetailTransaksi = () => {
+  // axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
+  //   .then(response => {
+  //     this.setState({ detail: response.data.data })
+  //   })
+  //   .catch(error => {
+  //     if (error.response) {
+  //       if (error.response.status) {
+  //         window.alert(error.response.data.message)
+  //         window.location = '/'
+  //       }
+  //     } else {
+  //       console.log(error);
+  //     }
+  //   })
+  // }
   timeAwal = time => {
     let date = new Date(time)
     return `${date.getFullYear()}-${Number(date.getMonth()) + 1}-${date.getDate()}`
@@ -151,7 +151,7 @@ export default class Manajer extends React.Component {
 
   componentDidMount() {
     this.getTransaksi()
-    this.getDetailTransaksi()
+    // this.getDetailTransaksi()
     axios
       .get("http://localhost:4040/kasir_kafe/pemesanan/qtybymenu", this.headerConfig())
       .then((response) => {
@@ -242,15 +242,27 @@ export default class Manajer extends React.Component {
     return totalBayar
   }
   pendapatan = () => {
-    for (let i = 0; i < this.state.detail.length; i++) {
-      var harga = this.state.detail[i].menu.harga
-      var qty = this.state.detail[i].qty
-      var subTotal = harga * qty
-      this.state.pendapatan = this.state.pendapatan + subTotal
-    }
-    console.log(this.state.pendapatan)
-    console.log(this.state.detail)
-    return this.state.pendapatan
+    $("#pendapatan").hide()
+    axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
+      .then(response => {
+        this.setState({ detail: response.data.data })
+        for (let i = 0; i < response.data.data.length; i++) {
+          var harga = response.data.data[i].menu.harga
+          var qty = response.data.data[i].qty
+          var subTotal = harga * qty
+          this.setState({ pendapatan: this.state.pendapatan + subTotal })
+        }
+      })
+      .catch(error => {
+        if (error.response) {
+          if (error.response.status) {
+            window.alert(error.response.data.message)
+            window.location = '/'
+          }
+        } else {
+          console.log(error);
+        }
+      })
   }
 
   getNomorMeja = (value) => {
@@ -262,26 +274,21 @@ export default class Manajer extends React.Component {
 
   }
 
+  laporan = () => {
+    $("#refresh").hide()
+    const printContents = document.getElementById("laporan").innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    window.location.reload()
+  }
+
   render() {
     return (
       <div className='flex h-screen w-full'>
+        <Navbar />
         <div class="w-full h-screen">
-          <Navbar />
-          <div class="relative mt-20 overflow-x-auto shadow-md p-4 sm:rounded-lg m-2">
-            <h2 className="dark:text-white text-lg font-sans mb-2">Grafik Menu Terlaris
-            </h2>
-            <div class="p-4 mb-6 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700">
-              <Chart
-                options={this.state.options}
-                series={this.state.data}
-                type="bar"
-                height={350}
-              />
-            </div>
-          </div>
-          <div class="relative shadow-md sm:rounded-lg m-2">
+          <div class="relative mt-20  shadow-md sm:rounded-lg m-2">
             <div className="flex justify-between items-center m-4">
-              <h2 className="dark:text-white text-lg font-sans">Riwayat Penjualan</h2>
               <form className="sm:w-1/2" onSubmit={(event) => this.getTransaksiUser(event)}>
                 <label
                   htmlFor="search"
@@ -323,10 +330,6 @@ export default class Manajer extends React.Component {
                   </button>
                 </div>
               </form>
-            </div>
-            <div className="bg-gray-100 p-2 border-2 mb-2 hover:bg-gray-200 flex justify-between items-center">
-              <p className="font-sans text-gray-700">Total Pendapatan: {this.convertToRupiah(this.pendapatan())}</p>
-
               <div className="flex items-center">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -339,7 +342,7 @@ export default class Manajer extends React.Component {
                     placeholder="Select date start"
                   />
                 </div>
-                <span className="mx-4 text-gray-500">to</span>
+                <span className="mx-4 text-gray-500">Sampai</span>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                   </div>
@@ -355,56 +358,77 @@ export default class Manajer extends React.Component {
                   Cari
                 </button>
               </div>
-
             </div>
-            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 ">
-              <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                  <th scope="col" class="px-6 py-3">
-                    Nama Pelanggan
-                  </th>
-                  <th scope="col" class="px-6 py-3 ">
-                    Nomor Meja
-                  </th>
-                  <th scope="col" class="px-6 py-3 ">
-                    Petugas
-                  </th>
-                  <th scope="col" class="px-6 py-3 ">
-                    Tanggal Pemesanan
-                  </th>
-                  <th scope="col" class="px-6 py-3 ">
-                    Jenis Pesanan
-                  </th>
-                  <th scope="col" class="px-6 py-3 ">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {this.state.transaksi.map(item => (
-                  <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" onClick={() => this.getDetail(item)} key={item.id_transaksi}>
-                    <td class="px-6 py-4">
-                      {item.nama_pelanggan}
-                    </td>
-                    <td class="px-6 py-4">
-                      {this.getNomorMeja(item)}
-                    </td>
-                    <td class="px-6 py-4">
-                      {item.user.nama_user}
-                    </td>
-                    <td class="px-6 py-4">
-                      {this.convertTime(item.tgl_transaksi)}
-                    </td>
-                    <td class="px-6 py-4">
-                      {item.jenis_pesanan}
-                    </td>
-                    <td class="px-6 py-4">
-                      {item.status}
-                    </td>
+            <button className="float-right mr-3 hover:bg-green-800 bg-green-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.laporan()}>
+              Unduh Laporan
+            </button>
+            <div id="laporan">
+              <h2 className="dark:text-white text-lg font-sans flex m-2">Riwayat Penjualan<SlRefresh id="refresh" onClick={() => window.location.reload()} className="m-1 hover:cursor-pointer"></SlRefresh></h2>
+              <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 ">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                  <tr>
+                    <th scope="col" class="px-6 py-3">
+                      Nama Pelanggan
+                    </th>
+                    <th scope="col" class="px-6 py-3 ">
+                      Nomor Meja
+                    </th>
+                    <th scope="col" class="px-6 py-3 ">
+                      Petugas
+                    </th>
+                    <th scope="col" class="px-6 py-3 ">
+                      Tanggal Pemesanan
+                    </th>
+                    <th scope="col" class="px-6 py-3 ">
+                      Jenis Pesanan
+                    </th>
+                    <th scope="col" class="px-6 py-3 ">
+                      Status
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {this.state.transaksi.map(item => (
+                    <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" onClick={() => this.getDetail(item)} key={item.id_transaksi}>
+                      <td class="px-6 py-4">
+                        {item.nama_pelanggan}
+                      </td>
+                      <td class="px-6 py-4">
+                        {this.getNomorMeja(item)}
+                      </td>
+                      <td class="px-6 py-4">
+                        {item.user.nama_user}
+                      </td>
+                      <td class="px-6 py-4">
+                        {this.convertTime(item.tgl_transaksi)}
+                      </td>
+                      <td class="px-6 py-4">
+                        {item.jenis_pesanan}
+                      </td>
+                      <td class="px-6 py-4">
+                        {item.status}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="bg-gray-100 p-2 border-2 mb-2 justify-between hover:bg-gray-200 flex items-center">
+                <p className="font-sans text-gray-700">Total Pendapatan: {this.convertToRupiah(this.state.pendapatan)}</p>
+                <button id="pendapatan" className="float-right mr-3 hover:bg-green-800 bg-green-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.pendapatan()}>
+                  Hitung Pendapatan
+                </button>
+              </div>
+              <h2 className="dark:text-white text-lg font-sans m-2">Grafik Menu Terlaris
+              </h2>
+              <div class="p-4 border-2 border-gray-200 border-dashed rounded-lg dark:border-gray-700 m-2">
+                <Chart
+                  options={this.state.options}
+                  series={this.state.data}
+                  type="bar"
+                  height={350}
+                />
+              </div>
+            </div>
           </div>
         </div>
         {/* Modal */}
@@ -448,7 +472,6 @@ export default class Manajer extends React.Component {
             </div>
           </div>
         </div>
-        {/* <script src="../path/to/flowbite/dist/datepicker.js"></script> */}
       </div>
     );
   }

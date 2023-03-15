@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useRef } from "react";
 import axios from "axios";
 import Navbar from "./navbar";
 import $ from "jquery";
+import logo from "../../assets/coffee.ico"
 import { AiOutlineCheck, AiOutlinePlus } from 'react-icons/ai'
 import { HiOutlinePlus, HiOutlineMinus } from 'react-icons/hi'
+
+
 
 export default class User extends React.Component {
     constructor() {
@@ -207,6 +210,15 @@ export default class User extends React.Component {
             })
     }
 
+    // getNama = () => {
+    //     let user = JSON.parse(localStorage.getItem('user'))
+    //     if(user.nama_user !== null){ 
+    //         return user.nama_user
+    //     }else{
+    //         return "tidak ada"
+    //     }
+    // }
+
     getTransaksiLunas = () => {
         let user = JSON.parse(localStorage.getItem('user'))
         let url = "http://localhost:4040/kasir_kafe/pemesanan/riwayat/lunas/" + user.id_user
@@ -259,6 +271,17 @@ export default class User extends React.Component {
         }
     }
 
+    getQty(itemId) {
+        const item = this.state.detail_transaksi.find((item) => item.id_menu === itemId);
+        return item ? item.qty : 0;
+    }
+
+    getHarga(itemId) {
+        const item = this.state.detail_transaksi.find((item) => item.id_menu === itemId);
+        const menu = this.state.detail_transaksi.find((item) => item.id_menu === itemId).menu;
+        return item ? menu.harga * item.qty : 0;
+    }
+
     totalBayar = () => {
         for (let i = 0; i < this.state.detail_transaksi.length; i++) {
             var harga = this.state.detail_transaksi[i].menu.harga
@@ -271,6 +294,11 @@ export default class User extends React.Component {
     }
 
     Edit = selectedItem => {
+        const printContents = document.getElementById("nota").innerHTML;
+        const originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
         let sendData = {
             id_transaksi: selectedItem.id_transaksi,
             status: 'lunas'
@@ -571,7 +599,7 @@ export default class User extends React.Component {
                 {/* Modal */}
                 <div id="modal_detail" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 md:inset-0 h-modal md:h-full bg-tranparent bg-black bg-opacity-50">
                     <div class="flex md:h-auto w-auto justify-center ">
-                        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 w-1/3">
+                        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 w-auto">
                             <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" onClick={() => this.close()}>
                                 <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 <span class="sr-only">Tutup modal</span>
@@ -579,24 +607,36 @@ export default class User extends React.Component {
                             <div class="px-6 py-6 lg:px-8">
                                 <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Detail Pemesanan</h3>
                                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-900 dark:text-gray-400">
                                         <tr>
                                             <th scope="col" class="px-6 py-3">
                                                 Nama Menu
                                             </th>
                                             <th scope="col" class="px-6 py-3">
+                                                Harga
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
                                                 Jumlah
+                                            </th>
+                                            <th scope="col" class="px-6 py-3">
+                                                Total Harga
                                             </th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {this.state.detail_transaksi.map(item => (
+                                        {this.state.detail_transaksi.map((item) => (
                                             <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" key={item.id_detail_transaksi}>
                                                 <td class="px-6 py-4">
                                                     {item.menu.nama_menu}
                                                 </td>
                                                 <td class="px-6 py-4">
-                                                    {item.qty}
+                                                    {this.convertToRupiah(item.menu.harga)}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {this.getQty(item.id_menu)}
+                                                </td>
+                                                <td class="px-6 py-4">
+                                                    {this.convertToRupiah(this.getHarga(item.id_menu))}
                                                 </td>
                                             </tr>
                                         ))}
@@ -693,7 +733,81 @@ export default class User extends React.Component {
                         </div>
                     </div>
                 </div>
-            </div>
+
+                {/* NOTA */}
+                <div class="relative h-auto bg-white rounded-lg shadow dark:bg-gray-700 w-auto hidden" id="nota" >
+                    <a href="#" class="flex items-center justify-center m-6 text-2xl font-semibold text-gray-600">
+                        <img class="w-8 h-8 mr-2" src={logo} alt="logo" />
+                        Wiku Cafe Shop
+                    </a>
+                    <hr></hr>
+                    <div class="px-6 py-3">
+                        <h3 class="text-xl font-medium mb-4 text-gray-900 dark:text-white">Informasi Kontak</h3>
+                        <label class="block font-bold">Alamat:
+                            <p className="font-sans text-gray-700">Jl.Merpati No.69 Sawojajar, Kedungkandang, Kota Malang</p>
+                        </label>
+
+                        <label class="block font-bold">Email:
+                            <p className="font-sans text-gray-700">wikucafe69@gmail.com</p>
+                        </label>
+
+                        <label class="block font-bold">Telepon:
+                            <p className="font-sans text-gray-700">085479887665</p>
+                        </label>
+                    </div>
+                    <hr></hr>
+                    <div class="px-6 py-3">
+                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-900 dark:text-gray-400">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        Nama Menu
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        Harga
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        Jumlah
+                                    </th>
+                                    <th scope="col" class="px-6 py-3">
+                                        Total Harga
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {this.state.detail_transaksi.map((item) => (
+                                    <tr class="bg-white border-b font-sans dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600" key={item.id_detail_transaksi}>
+                                        <td class="px-6 py-4">
+                                            {item.menu.nama_menu}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {this.convertToRupiah(item.menu.harga)}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {this.getQty(item.id_menu)}
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            {this.convertToRupiah(this.getHarga(item.id_menu))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <div className="bg-gray-100 p-2 mb-2 hover:bg-gray-200">
+                            <p className="font-sans text-gray-700">Total Bayar: {this.convertToRupiah(this.totalBayar())}</p>
+                        </div>
+                    </div>
+                    <hr></hr>
+                    <div class="px-6 py-3 text-center">
+                        <h3 class="text-xl font-medium mb-4 text-gray-900 dark:text-white">Terima Kasih</h3>
+                        <p className="font-sans text-gray-700">Jangan lupa kembali ke Wiku Cafe</p>
+                        <label class="block font-bold mt-4">
+                            <p className="font-sans text-gray-700">Selamat Menikmati</p>
+                        </label>
+                    </div>
+                </div>
+
+            </div >
         )
     }
 }

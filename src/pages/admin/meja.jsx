@@ -101,12 +101,14 @@ export default class Meja extends React.Component {
             axios.post(url, sendData, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
+                    window.location.reload()
                     this.getMeja()
                 })
         } else if (this.state.action === "update") {
             axios.put(url, sendData, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
+                    window.location.reload()
                     this.getMeja()
                 })
                 .catch(error => console.log(error))
@@ -119,6 +121,7 @@ export default class Meja extends React.Component {
             axios.delete(url, this.headerConfig())
                 .then(response => {
                     window.alert(response.data.message)
+                    window.location.reload()
                     this.getMeja()
                 })
                 .catch(error => console.log(error))

@@ -3,6 +3,11 @@ import $ from "jquery";
 import axios from "axios";
 import Navbar from "./navbar";
 import { HiOutlinePlus, HiOutlineMinus } from 'react-icons/hi'
+import Pdf from 'react-to-pdf'
+const ref = React.createRef()
+const option = {
+    orientation : 'landscape'
+}
 
 export default class Pemesanan extends React.Component {
     constructor() {
@@ -445,6 +450,9 @@ export default class Pemesanan extends React.Component {
                             </div>
                         </div>
                     </div>
+                </div>
+                <div>
+                    
                 </div>
             </div>
         )
