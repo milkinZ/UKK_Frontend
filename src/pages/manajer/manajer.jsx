@@ -242,7 +242,8 @@ export default class Manajer extends React.Component {
     return totalBayar
   }
   pendapatan = () => {
-    $("#pendapatan").hide()
+    $("#pendapatan").show()
+    $("#btn").hide()
     axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
       .then(response => {
         this.setState({ detail: response.data.data })
@@ -362,8 +363,11 @@ export default class Manajer extends React.Component {
             <button className="float-right mr-3 hover:bg-green-800 bg-green-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.laporan()}>
               Unduh Laporan
             </button>
+            <button id="btn" className="float-right mr-3 hover:bg-green-800 bg-green-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.pendapatan()}>
+              Tampilkan Pendapatan
+            </button>
             <div id="laporan">
-              <h2 className="dark:text-white text-lg font-sans flex m-2">Riwayat Penjualan<SlRefresh id="refresh" onClick={() => window.location.reload()} className="m-1 hover:cursor-pointer"></SlRefresh></h2>
+              <h2 className="dark:text-white text-lg font-sans flex m-2">Riwayat Penjualan<SlRefresh id="refresh" onClick={() => window.location.reload()} className="mt-1.5 ml-1.5 hover:cursor-pointer"></SlRefresh></h2>
               <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 ">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                   <tr>
@@ -412,11 +416,8 @@ export default class Manajer extends React.Component {
                   ))}
                 </tbody>
               </table>
-              <div className="bg-gray-100 p-2 border-2 mb-2 justify-between hover:bg-gray-200 flex items-center">
+              <div className="bg-gray-100 p-2 border-2 mb-2 justify-between hover:bg-gray-200 items-center hidden" id="pendapatan">
                 <p className="font-sans text-gray-700">Total Pendapatan: {this.convertToRupiah(this.state.pendapatan)}</p>
-                <button id="pendapatan" className="float-right mr-3 hover:bg-green-800 bg-green-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.pendapatan()}>
-                  Hitung Pendapatan
-                </button>
               </div>
               <h2 className="dark:text-white text-lg font-sans m-2">Grafik Menu Terlaris
               </h2>

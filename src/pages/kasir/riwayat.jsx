@@ -770,7 +770,7 @@ export default class User extends React.Component {
                                         Jumlah
                                     </th>
                                     <th scope="col" class="px-6 py-3">
-                                        Total Harga
+                                        Harga
                                     </th>
                                 </tr>
                             </thead>
@@ -794,13 +794,14 @@ export default class User extends React.Component {
                             </tbody>
                         </table>
                         <div className="bg-gray-100 p-2 mb-2 hover:bg-gray-200">
-                            <p className="font-sans text-gray-700">Total Bayar: {this.convertToRupiah(this.totalBayar())}</p>
+                            <p className="font-sans text-gray-700">Total: {this.convertToRupiah(this.totalBayar())}</p>
                         </div>
                     </div>
                     <hr></hr>
                     <div class="px-6 py-3 text-center">
                         <h3 class="text-xl font-medium mb-4 text-gray-900 dark:text-white">Terima Kasih</h3>
                         <p className="font-sans text-gray-700">Jangan lupa kembali ke Wiku Cafe</p>
+                        <p className="font-serif text-sm text-gray-700">Password Wifi: wikucafe69</p>
                         <label class="block font-bold mt-4">
                             <p className="font-sans text-gray-700">Selamat Menikmati</p>
                         </label>
