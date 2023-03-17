@@ -13,6 +13,7 @@ export default class User extends React.Component {
         super()
         this.state = {
             detail_transaksi: [],
+            detail: [],
             transaksiBelumBayar: [],
             transaksiLunas: [],
             makanan: [],
@@ -145,11 +146,11 @@ export default class User extends React.Component {
 
     };
 
-    getQty(itemId) {
+    Qty(itemId) {
         const item = this.state.cart.find((item) => item.id_menu === itemId);
         return item ? item.qty : 0;
     }
-    getHarga(itemId) {
+    Harga(itemId) {
         const item = this.state.cart.find((item) => item.id_menu === itemId);
         const menu = this.state.menus.find((item) => item.id_menu === itemId);
         return item ? menu.harga * item.qty : 0;
@@ -316,27 +317,27 @@ export default class User extends React.Component {
             .catch(error => console.log(error))
     }
     pesanLagi = (value) => {
-        // let url = "http://localhost:4040/kasir_kafe/pemesanan/detail/" + value.id_transaksi
-        // axios.get(url, this.headerConfig())
-        //     .then(response => {
-        //         this.setState({ detail: response.data.data })
-        //     })
-        //     .catch(error => {
-        //         if (error.response) {
-        //             if (error.response.status) {
-        //                 window.alert(error.response.data.message)
-        //                 window.location = '/'
-        //             }
-        //         } else {
-        //             console.log(error);
-        //         }
-        //     })
+        let url = "http://localhost:4040/kasir_kafe/pemesanan/detail/" + value.id_transaksi
+        axios.get(url, this.headerConfig())
+            .then(response => {
+                this.setState({ detail: response.data.data })
+                console.log(this.state.detail)
+            })
+            .catch(error => {
+                if (error.response) {
+                    if (error.response.status) {
+                        window.alert(error.response.data.message)
+                        window.location = '/'
+                    }
+                } else {
+                    console.log(error);
+                }
+            })
         $('#tambah').show()
         $("#history").hide()
         this.setState({
             id_transaksi: value.id_transaksi,
         })
-
     }
     batalPesan = () => {
         window.location.reload()
@@ -409,17 +410,34 @@ export default class User extends React.Component {
         $("#modal_transaksi").show()
     }
     simpan = () => {
-        let sendData = {
-            detail_transaksi: this.state.cart
-        }
-        let url = "http://localhost:4040/kasir_kafe/pemesanan/detail/add"
-        axios.post(url, sendData, this.headerConfig())
-            .then(response => {
-                window.alert(response.data.message)
-                window.location = '/kasir/riwayat'
+        for (let i = 0; i < this.state.cart.length; i++) {
+            if (this.state.detail.find((item) => item.id_menu === this.state.cart[i].id_menu)) {
+                let data = {
+                    id_transaksi: this.state.detail.find((item) => item.id_menu === this.state.cart[i].id_menu).id_transaksi,
+                    id_menu: this.state.detail.find((item) => item.id_menu === this.state.cart[i].id_menu).id_menu,
+                    qty: this.state.detail.find((item) => item.id_menu === this.state.cart[i].id_menu).qty + this.state.cart[i].qty
+                }
+                let url = "http://localhost:4040/kasir_kafe/pemesanan/ubahqty"
+                axios.put(url, data, this.headerConfig())
+                    .then(response => {
+                        
+                    })
+                    .catch(error => console.log(error))
+            } else if (this.state.detail.find((item) => item.id_menu !== this.state.cart[i].id_menu)) {
+                console.log(this.state.cart[i])
+                let sendData = {
+                    detail_transaksi: this.state.cart[i]
+                }
+                let url = "http://localhost:4040/kasir_kafe/pemesanan/detail/add"
+                axios.post(url, sendData, this.headerConfig())
+                    .then(response => {
 
-            })
-            .catch(error => console.log(error))
+                    })
+                    .catch(error => console.log(error))
+            }
+        }
+        window.alert("Berhasil menambah pesanan")
+        window.location = '/kasir/riwayat'
     }
 
     render() {
@@ -458,7 +476,7 @@ export default class User extends React.Component {
                                             <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
                                         </button>
                                         <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
-                                            <span class="font-medium text-gray-200 ">{this.getQty(item.id_menu)}</span>
+                                            <span class="font-medium text-gray-200 ">{this.Qty(item.id_menu)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -482,7 +500,7 @@ export default class User extends React.Component {
                                             <HiOutlinePlus><span class="sr-only">Tambah</span></HiOutlinePlus>
                                         </button>
                                         <div class="relative float-right inline-flex items-center justify-center w-10 h-10 overflow-hidden rounded-full bg-gray-700">
-                                            <span class="font-medium text-gray-200 ">{this.getQty(item.id_menu)}</span>
+                                            <span class="font-medium text-gray-200 ">{this.Qty(item.id_menu)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -597,8 +615,8 @@ export default class User extends React.Component {
                     </div>
                 </div>
                 {/* Modal */}
-                <div id="modal_detail" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 md:inset-0 h-modal md:h-full bg-tranparent bg-black bg-opacity-50">
-                    <div class="flex md:h-auto w-auto justify-center ">
+                <div id="modal_detail" tabindex="-1" aria-hidden="true" class="fixed overflow-y-auto top-0 left-0 right-0 z-50 hidden w-full p-4 md:inset-0 h-modal md:h-full bg-tranparent bg-black bg-opacity-50">
+                    <div class="flex md:h-auto w-auto justify-center">
                         <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 w-auto">
                             <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" onClick={() => this.close()}>
                                 <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
@@ -654,7 +672,7 @@ export default class User extends React.Component {
                         </div>
                     </div>
                 </div>
-                <div id="modal_transaksi" tabindex="-1" aria-hidden="true" class="overflow-x-auto fixed top-0 left-0 right-0 z-50 hidden w-full p-4 md:inset-0 h-modal md:h-full bg-tranparent bg-black bg-opacity-50">
+                <div id="modal_transaksi" tabindex="-1" aria-hidden="true" class="overflow-x-auto overflow-y-auto fixed top-0 left-0 right-0 z-50 hidden w-full p-4 md:inset-0 h-modal md:h-full bg-tranparent bg-black bg-opacity-50">
                     <div class="flex lg:h-auto w-auto justify-center ">
                         <div class="relative bg-white rounded-lg shadow dark:bg-gray-700 w-auto">
                             <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" onClick={() => this.closeTransaksi()}>
@@ -691,10 +709,10 @@ export default class User extends React.Component {
                                                         {this.convertToRupiah(item.harga)}
                                                     </td>
                                                     <td class="px-6 py-4">
-                                                        {this.getQty(item.id_menu)}
+                                                        {this.Qty(item.id_menu)}
                                                     </td>
                                                     <td class="px-6 py-4">
-                                                        {this.convertToRupiah(this.getHarga(item.id_menu))}
+                                                        {this.convertToRupiah(this.Harga(item.id_menu))}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -752,7 +770,7 @@ export default class User extends React.Component {
                         </label>
 
                         <label class="block font-bold">Telepon:
-                            <p className="font-sans text-gray-700">085479887665</p>
+                            <p className="font-sans text-gray-700">085780467900`</p>
                         </label>
                     </div>
                     <hr></hr>

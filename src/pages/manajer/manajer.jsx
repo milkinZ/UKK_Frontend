@@ -47,21 +47,40 @@ export default class Manajer extends React.Component {
 
   getTransaksiUser = (event) => {
     event.preventDefault()
-    let url = "http://localhost:4040/kasir_kafe/pemesanan/user/" + this.state.nama_user
-    axios.get(url, this.headerConfig())
-      .then(response => {
-        this.setState({ transaksi: response.data.data })
-      })
-      .catch(error => {
-        if (error.response) {
-          if (error.response.status) {
-            window.alert(error.response.data.message)
-            window.location = '/'
+    if (this.state.nama_user === "") {
+      $("#pendapatan").show()
+      axios.get("http://localhost:4040/kasir_kafe/pemesanan/", this.headerConfig())
+        .then(response => {
+          this.setState({ transaksi: response.data.data })
+        })
+        .catch(error => {
+          if (error.response) {
+            if (error.response.status) {
+              window.alert(error.response.data.message)
+              window.location = '/'
+            }
+          } else {
+            console.log(error);
           }
-        } else {
-          console.log(error);
-        }
-      })
+        })
+    } else {
+      $("#pendapatan").hide()
+      let url = "http://localhost:4040/kasir_kafe/pemesanan/user/" + this.state.nama_user
+      axios.get(url, this.headerConfig())
+        .then(response => {
+          this.setState({ transaksi: response.data.data })
+        })
+        .catch(error => {
+          if (error.response) {
+            if (error.response.status) {
+              window.alert(error.response.data.message)
+              window.location = '/'
+            }
+          } else {
+            console.log(error);
+          }
+        })
+    }
   }
   getTransaksi = () => {
     let url = "http://localhost:4040/kasir_kafe/pemesanan/"
@@ -82,21 +101,67 @@ export default class Manajer extends React.Component {
   }
   getTransaksiTanggal = (event) => {
     event.preventDefault()
-    let url = `http://localhost:4040/kasir_kafe/pemesanan/tanggal/${this.timeAwal(this.state.awal)}/${this.timeAkhir(this.state.akhir)}`
-    axios.get(url, this.headerConfig())
-      .then(response => {
-        this.setState({ transaksi: response.data.data })
-      })
-      .catch(error => {
-        if (error.response) {
-          if (error.response.status) {
-            window.alert(error.response.data.message)
-            window.location = '/'
+    if (this.state.awal === '' || this.state.akhir === '') {
+      axios.get("http://localhost:4040/kasir_kafe/pemesanan/", this.headerConfig())
+        .then(response => {
+          this.setState({ transaksi: response.data.data })
+          axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
+            .then(response => {
+              this.setState({ detail: response.data.data })
+            })
+            .catch(error => {
+              if (error.response) {
+                if (error.response.status) {
+                  window.alert(error.response.data.message)
+                  window.location = '/'
+                }
+              } else {
+                console.log(error);
+              }
+            })
+        })
+        .catch(error => {
+          if (error.response) {
+            if (error.response.status) {
+              window.alert(error.response.data.message)
+              window.location = '/'
+            }
+          } else {
+            console.log(error);
           }
-        } else {
-          console.log(error);
-        }
-      })
+        })
+      window.alert("Masukkan rentang tanggal")
+    } else {
+      let url = `http://localhost:4040/kasir_kafe/pemesanan/tanggal/${this.timeAwal(this.state.awal)}/${this.timeAkhir(this.state.akhir)}`
+      axios.get(url, this.headerConfig())
+        .then(response => {
+          this.setState({ transaksi: response.data.data })
+          axios.get(`http://localhost:4040/kasir_kafe/pemesanan/detail/tanggal/${this.timeAwal(this.state.awal)}/${this.timeAkhir(this.state.akhir)}`, this.headerConfig())
+            .then(response => {
+              this.setState({ detail: response.data.data })
+            })
+            .catch(error => {
+              if (error.response) {
+                if (error.response.status) {
+                  window.alert(error.response.data.message)
+                  window.location = '/'
+                }
+              } else {
+                console.log(error);
+              }
+            })
+        })
+        .catch(error => {
+          if (error.response) {
+            if (error.response.status) {
+              window.alert(error.response.data.message)
+              window.location = '/'
+            }
+          } else {
+            console.log(error);
+          }
+        })
+    }
   }
   getDetail = (selectedItem) => {
     $("#modal_detail").show()
@@ -115,22 +180,22 @@ export default class Manajer extends React.Component {
         }
       })
   }
-  // getDetailTransaksi = () => {
-  // axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
-  //   .then(response => {
-  //     this.setState({ detail: response.data.data })
-  //   })
-  //   .catch(error => {
-  //     if (error.response) {
-  //       if (error.response.status) {
-  //         window.alert(error.response.data.message)
-  //         window.location = '/'
-  //       }
-  //     } else {
-  //       console.log(error);
-  //     }
-  //   })
-  // }
+  getDetailTransaksi = () => {
+    axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
+      .then(response => {
+        this.setState({ detail: response.data.data })
+      })
+      .catch(error => {
+        if (error.response) {
+          if (error.response.status) {
+            window.alert(error.response.data.message)
+            window.location = '/'
+          }
+        } else {
+          console.log(error);
+        }
+      })
+  }
   timeAwal = time => {
     let date = new Date(time)
     return `${date.getFullYear()}-${Number(date.getMonth()) + 1}-${date.getDate()}`
@@ -151,7 +216,7 @@ export default class Manajer extends React.Component {
 
   componentDidMount() {
     this.getTransaksi()
-    // this.getDetailTransaksi()
+    this.getDetailTransaksi()
     axios
       .get("http://localhost:4040/kasir_kafe/pemesanan/qtybymenu", this.headerConfig())
       .then((response) => {
@@ -242,28 +307,15 @@ export default class Manajer extends React.Component {
     return totalBayar
   }
   pendapatan = () => {
-    $("#pendapatan").show()
-    $("#btn").hide()
-    axios.get("http://localhost:4040/kasir_kafe/pemesanan/detail/", this.headerConfig())
-      .then(response => {
-        this.setState({ detail: response.data.data })
-        for (let i = 0; i < response.data.data.length; i++) {
-          var harga = response.data.data[i].menu.harga
-          var qty = response.data.data[i].qty
-          var subTotal = harga * qty
-          this.setState({ pendapatan: this.state.pendapatan + subTotal })
-        }
-      })
-      .catch(error => {
-        if (error.response) {
-          if (error.response.status) {
-            window.alert(error.response.data.message)
-            window.location = '/'
-          }
-        } else {
-          console.log(error);
-        }
-      })
+    for (let i = 0; i < this.state.detail.length; i++) {
+      var harga = this.state.detail[i].menu.harga
+      var qty = this.state.detail[i].qty
+      var subTotal = harga * qty
+      this.state.pendapatan = this.state.pendapatan + subTotal
+    }
+    let total = this.state.pendapatan
+    this.state.pendapatan = 0
+    return total
   }
 
   getNomorMeja = (value) => {
@@ -363,9 +415,9 @@ export default class Manajer extends React.Component {
             <button className="float-right mr-3 hover:bg-green-800 bg-green-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.laporan()}>
               Unduh Laporan
             </button>
-            <button id="btn" className="float-right mr-3 hover:bg-green-800 bg-green-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.pendapatan()}>
+            {/* <button id="btn" className="float-right mr-3 hover:bg-green-800 bg-green-700 text-white text-sm py-2 px-4 rounded-lg shadow hover:shadow-md outline-none focus:outline-none ease-linear transition-all duration-150" type="button" onClick={() => this.pendapatan()}>
               Tampilkan Pendapatan
-            </button>
+            </button> */}
             <div id="laporan">
               <h2 className="dark:text-white text-lg font-sans flex m-2">Riwayat Penjualan<SlRefresh id="refresh" onClick={() => window.location.reload()} className="mt-1.5 ml-1.5 hover:cursor-pointer"></SlRefresh></h2>
               <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 ">
@@ -416,8 +468,8 @@ export default class Manajer extends React.Component {
                   ))}
                 </tbody>
               </table>
-              <div className="bg-gray-100 p-2 border-2 mb-2 justify-between hover:bg-gray-200 items-center hidden" id="pendapatan">
-                <p className="font-sans text-gray-700">Total Pendapatan: {this.convertToRupiah(this.state.pendapatan)}</p>
+              <div className="bg-gray-100 p-2 border-2 mb-2 justify-between hover:bg-gray-200 items-center" id="pendapatan">
+                <p className="font-sans text-gray-700">Total Pendapatan: {this.convertToRupiah(this.pendapatan())}</p>
               </div>
               <h2 className="dark:text-white text-lg font-sans m-2">Grafik Menu Terlaris
               </h2>
